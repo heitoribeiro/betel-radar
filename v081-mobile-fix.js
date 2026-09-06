@@ -1,4 +1,4 @@
-/* Betel Radar v0.8.1 — fix mobile Agenda build 8105 */
+/* Betel Radar v0.8.1 — fix mobile Agenda build 8106 */
 (function(){
   function applyAgendaMobile(){
     const mobile=window.matchMedia('(max-width:760px)').matches || window.innerWidth<=760;
@@ -10,6 +10,16 @@
     const cards=[...box.querySelectorAll('.v081-kpi')];
     const actions=box.querySelector('.v081-actions');
     const button=box.querySelector('.v081-export');
+
+    box.style.setProperty('width','100%','important');
+    box.style.setProperty('max-width','none','important');
+    box.style.setProperty('min-width','0','important');
+    box.style.setProperty('box-sizing','border-box','important');
+    box.style.setProperty('align-self','stretch','important');
+    box.style.setProperty('flex','1 1 100%','important');
+    box.style.setProperty('margin-left','0','important');
+    box.style.setProperty('margin-right','0','important');
+
     if(head){head.style.setProperty('padding','10px 11px','important')}
     if(grid){
       grid.style.setProperty('display','grid','important');
