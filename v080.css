@@ -1,0 +1,7 @@
+/* Betel Radar v0.8.0 — melhorias visuais isoladas */
+.kanban{grid-template-columns:repeat(8,minmax(160px,1fr))!important;gap:10px!important;overflow-x:auto!important;padding-bottom:8px;scrollbar-width:thin}
+.kanban-col{min-width:160px!important}.kanban-card strong{overflow-wrap:anywhere}.empty-col{font-size:12px;color:#7b7b7b;padding:14px 4px}
+.map-shell.real-map{height:470px!important;min-height:470px!important;background:#e9ece8!important;overflow:hidden!important}
+.map-shell.real-map:before,.map-shell.real-map .map-label,.map-shell.real-map .map-pin{display:none!important}
+.leaflet-container{font-family:inherit}.score-marker{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:3px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,.22);font-size:11px;font-weight:900}.score-marker.high{background:#dff4e8;color:#0d6d42}.score-marker.medium{background:#fff0cf;color:#946000}.score-marker.low{background:#eee;color:#555}.map-popup strong{display:block;font-size:13px;margin-bottom:4px}.map-popup small{display:block;color:#667085;line-height:1.4}.map-popup .text-btn{margin-top:8px}.version-chip{display:inline-flex;margin-top:8px;padding:5px 9px;border-radius:999px;background:#f2ebe3;color:#8d5c2c;font-size:11px;font-weight:800}
+@media(max-width:1150px) and (min-width:761px){.kanban{grid-template-columns:repeat(8,minmax(175px,1fr))!important}}
