@@ -1,40 +1,17 @@
-/* Betel Radar v0.8.1 — produtividade */
+/* Betel Radar v0.8.1 — produtividade, build 8102 */
 (function(){
-  const VERSION='v0.8.1';
-  const safeOps=()=>typeof opportunities!=='undefined'&&Array.isArray(opportunities)?opportunities:[];
-  const csvCell=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  function downloadCsv(name,rows){const csv='\ufeff'+rows.map(r=>r.map(csvCell).join(';')).join('\r\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
-  function updateVersion(){const chip=document.getElementById('versionChip');if(chip)chip.textContent='Betel Radar '+VERSION;const help=document.querySelector('#configView .auth-help');if(help&&!chip){const el=document.createElement('span');el.id='versionChip';el.className='version-chip';el.textContent='Betel Radar '+VERSION;help.insertAdjacentElement('afterend',el)}}
-  function dateStart(d){const x=new Date(d);x.setHours(0,0,0,0);return x}
-  function validDate(v){const d=new Date(v);return Number.isFinite(d.getTime())?d:null}
-  function patchAgenda(){
-    const root=document.getElementById('agendaView');if(!root||document.getElementById('agendaProductivity'))return;
-    const ops=safeOps().filter(o=>o.followUp&&validDate(o.followUp));
-    const today=dateStart(new Date()),tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);const end7=new Date(today);end7.setDate(end7.getDate()+8);
-    const todayN=ops.filter(o=>{const d=validDate(o.followUp);return d>=today&&d<tomorrow}).length;
-    const overdue=ops.filter(o=>validDate(o.followUp)<today).length;
-    const next7=ops.filter(o=>{const d=validDate(o.followUp);return d>=tomorrow&&d<end7}).length;
-    const box=document.createElement('div');box.id='agendaProductivity';box.className='v081-toolbar';box.innerHTML=`<div class="v081-summary"><div class="v081-metric"><small>Hoje</small><strong>${todayN}</strong></div><div class="v081-metric"><small>Próximos 7 dias</small><strong>${next7}</strong></div><div class="v081-metric"><small>Atrasados</small><strong>${overdue}</strong></div></div><div class="v081-actions"><button class="v081-btn" id="exportAgendaCsv">Exportar agenda CSV</button></div><div class="v081-note">Resumo calculado a partir dos follow-ups cadastrados nas oportunidades.</div>`;
-    const panel=root.querySelector('.panel')||root;const p=panel.querySelector('p');if(p)p.insertAdjacentElement('afterend',box);else panel.prepend(box);
-    box.querySelector('#exportAgendaCsv').onclick=()=>{const rows=[['Oportunidade','Cidade','Anunciante','Status','Follow-up']];ops.sort((a,b)=>new Date(a.followUp)-new Date(b.followUp)).forEach(o=>rows.push([o.title,o.city,o.advertiser,o.status,new Date(o.followUp).toLocaleString('pt-BR')]));downloadCsv('betel-radar-agenda.csv',rows)};
-  }
-  function tableRows(table){return [...table.querySelectorAll('tr')].map(tr=>[...tr.children].map(c=>c.innerText.trim()))}
-  function patchFinance(){
-    const root=document.getElementById('financeView');if(!root||document.getElementById('financeProductivity'))return;const table=root.querySelector('table');if(!table)return;
-    const box=document.createElement('div');box.id='financeProductivity';box.className='v081-toolbar';box.innerHTML=`<div class="v081-actions"><input id="financeSearch" class="v081-search" type="search" placeholder="Buscar oportunidade ou anunciante"><button class="v081-btn" id="exportFinanceCsv">Exportar financeiro CSV</button></div><div class="v081-note">Toque ou clique em uma linha para abrir a ficha da oportunidade.</div>`;
-    table.insertAdjacentElement('beforebegin',box);
-    const tbody=table.querySelector('tbody');const filter=()=>{const q=box.querySelector('#financeSearch').value.trim().toLocaleLowerCase('pt-BR');if(!tbody)return;[...tbody.querySelectorAll('tr')].forEach(tr=>tr.style.display=!q||tr.innerText.toLocaleLowerCase('pt-BR').includes(q)?'':'none')};
-    box.querySelector('#financeSearch').addEventListener('input',filter);
-    box.querySelector('#exportFinanceCsv').onclick=()=>{const rows=tableRows(table).filter((r,i)=>i===0||![...table.querySelectorAll('tbody tr')][i-1]?.style.display);downloadCsv('betel-radar-financeiro.csv',rows)};
-    if(tbody)[...tbody.querySelectorAll('tr')].forEach(tr=>{tr.classList.add('v081-row-link');tr.addEventListener('click',e=>{if(e.target.closest('button,input,select,a'))return;const title=tr.cells?.[0]?.innerText.trim();const op=safeOps().find(o=>String(o.title).trim()===title);if(op&&typeof openDetail==='function')openDetail(op.id)})});
-  }
-  function patchMessages(){
-    const root=document.getElementById('messagesView');if(!root)return;const ta=root.querySelector('textarea');if(!ta||ta.dataset.v081Counter)return;ta.dataset.v081Counter='1';const count=document.createElement('div');count.className='v081-charcount';const refresh=()=>count.textContent=`${ta.value.length} caracteres`;ta.insertAdjacentElement('afterend',count);ta.addEventListener('input',refresh);root.addEventListener('click',()=>setTimeout(refresh,60));refresh();
-  }
-  function patchCurrent(view){if(view==='agenda')patchAgenda();if(view==='financeiro')patchFinance();if(view==='mensagens')patchMessages();if(view==='config')updateVersion()}
-  document.addEventListener('click',e=>{const nav=e.target.closest('.nav-item');if(nav){const v=nav.dataset.view;setTimeout(()=>patchCurrent(v),100);setTimeout(()=>patchCurrent(v),350)}});
-  if(typeof window.renderAgenda==='function'){const old=window.renderAgenda;window.renderAgenda=function(){const r=old.apply(this,arguments);setTimeout(patchAgenda,0);return r}}
-  if(typeof window.renderFinanceiro==='function'){const old=window.renderFinanceiro;window.renderFinanceiro=function(){const r=old.apply(this,arguments);setTimeout(patchFinance,0);return r}}
-  if(typeof window.renderMessages==='function'){const old=window.renderMessages;window.renderMessages=function(){const r=old.apply(this,arguments);setTimeout(patchMessages,0);return r}}
-  setTimeout(()=>{updateVersion();patchAgenda();patchFinance();patchMessages()},700);
+ const VERSION='v0.8.1';
+ const ops=()=>Array.isArray(window.opportunities)?window.opportunities:[];
+ const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+ const csv=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+ function dl(name,rows){const b=new Blob(['\ufeff'+rows.map(r=>r.map(csv).join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+ function visibleHeading(txt){return [...document.querySelectorAll('h1,h2,h3')].find(e=>e.offsetParent!==null&&e.textContent.trim().toLowerCase().includes(txt));}
+ function viewRoot(h){return h?.closest('.view,.content-view,.page,.panel')||h?.parentElement?.parentElement||document.body;}
+ function date(v){const d=new Date(v);return isNaN(d)?null:d} function day(d){const x=new Date(d);x.setHours(0,0,0,0);return x}
+ function agenda(){const h=visibleHeading('agenda comercial');if(!h)return;const root=viewRoot(h);let box=root.querySelector('#agendaProductivity');if(box)box.remove();const list=ops().filter(o=>o.followUp&&date(o.followUp));const t=day(new Date()),tm=new Date(t);tm.setDate(tm.getDate()+1);const e7=new Date(t);e7.setDate(e7.getDate()+8);const nToday=list.filter(o=>{const d=date(o.followUp);return d>=t&&d<tm}).length,n7=list.filter(o=>{const d=date(o.followUp);return d>=tm&&d<e7}).length,late=list.filter(o=>date(o.followUp)<t).length;box=document.createElement('section');box.id='agendaProductivity';box.className='v081-agenda-box';box.innerHTML=`<div class="v081-kpis"><div><span>Hoje</span><b>${nToday}</b></div><div><span>Próximos 7 dias</span><b>${n7}</b></div><div><span>Atrasados</span><b>${late}</b></div></div><button class="v081-export" id="exportAgendaCsv">⇩ Exportar agenda CSV</button>`;const desc=h.nextElementSibling; (desc||h).insertAdjacentElement('afterend',box);box.querySelector('button').onclick=()=>{const r=[['Oportunidade','Cidade','Anunciante','Status','Follow-up']];list.sort((a,b)=>date(a.followUp)-date(b.followUp)).forEach(o=>r.push([o.title,o.city,o.advertiser,o.status,date(o.followUp).toLocaleString('pt-BR')]));dl('betel-radar-agenda.csv',r)};}
+ function finance(){const h=visibleHeading('financeiro comercial');if(!h)return;const root=viewRoot(h);let box=root.querySelector('#financeProductivity');if(box)box.remove();box=document.createElement('section');box.id='financeProductivity';box.className='v081-fin-box';box.innerHTML=`<input id="financeSearch" type="search" placeholder="Buscar oportunidade ou anunciante"><button class="v081-export" id="exportFinanceCsv">⇩ Exportar financeiro CSV</button>`;const desc=h.nextElementSibling;(desc||h).insertAdjacentElement('afterend',box);const input=box.querySelector('input');input.oninput=()=>{const q=input.value.trim().toLowerCase();[...root.querySelectorAll('tbody tr,.finance-card,.financial-card,.proposal-card')].forEach(el=>el.style.display=!q||el.innerText.toLowerCase().includes(q)?'':'none')};box.querySelector('button').onclick=()=>{const r=[['Oportunidade','Anunciante','Proposta','Orçado','Contratado','Recebido','Status']];ops().forEach(o=>r.push([o.title,o.advertiser,o.proposalStatus||o.proposal?.status||'',o.budget||o.proposalValue||o.value||'',o.contractedValue||'',o.receivedValue||'',o.status]));dl('betel-radar-financeiro.csv',r)};}
+ function messages(){const h=visibleHeading('gerador de abordagem personalizada');if(!h)return;const root=viewRoot(h);const target=[...root.querySelectorAll('textarea,[contenteditable="true"],div')].find(e=>e.offsetParent!==null&&(/a mensagem aparecerá aqui/i.test(e.getAttribute?.('placeholder')||'')||/a mensagem aparecerá aqui/i.test(e.textContent||'')));if(!target)return;let c=root.querySelector('#v081CharCount');if(!c){c=document.createElement('div');c.id='v081CharCount';c.className='v081-charcount';target.insertAdjacentElement('afterend',c)}const refresh=()=>{const val=('value'in target?target.value:target.textContent)||'';c.textContent=`${val.length} caracteres`};target.addEventListener?.('input',refresh);refresh();setTimeout(refresh,150);}
+ function version(){const chip=document.getElementById('versionChip');if(chip)chip.textContent='Betel Radar '+VERSION;}
+ function run(){agenda();finance();messages();version()}
+ document.addEventListener('click',()=>{setTimeout(run,100);setTimeout(run,400)});const mo=new MutationObserver(()=>{clearTimeout(window.__v081t);window.__v081t=setTimeout(run,80)});mo.observe(document.documentElement,{subtree:true,childList:true});setTimeout(run,500);setInterval(run,2500);
 })();
