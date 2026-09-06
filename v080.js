@@ -11,18 +11,31 @@
   function refreshCurrentView(){const active=document.querySelector('.nav-item.active');const view=active?.dataset?.view;if(view==='dashboard')patchStats();else if(view==='crm')patchKanban();else if(view==='mapa')patchMap(true);else if(view==='config')versionChip()}
 
   function syncMobileMenuAndMap(){
-    if(window.innerWidth>760){document.body.classList.remove('betel-menu-open');return;}
-    const sidebar=document.querySelector('.sidebar');
-    if(!sidebar)return;
-    const r=sidebar.getBoundingClientRect();
-    const open=r.width>120 && r.right>80 && r.left>-20;
-    document.body.classList.toggle('betel-menu-open',open);
     const map=document.getElementById('opportunityMap');
-    if(map){
-      map.style.visibility=open?'hidden':'';
-      map.style.pointerEvents=open?'none':'';
+    if(window.innerWidth>760){
+      document.body.classList.remove('betel-menu-open');
+      if(map){map.style.visibility='';map.style.pointerEvents='';map.style.clipPath='';map.style.webkitClipPath='';}
+      return;
     }
-    if(!open&&leafletMap)setTimeout(()=>leafletMap.invalidateSize(),60);
+    const sidebar=document.querySelector('.sidebar');
+    if(!sidebar||!map)return;
+    const sr=sidebar.getBoundingClientRect();
+    const mr=map.getBoundingClientRect();
+    const open=sr.width>120&&sr.right>80&&sr.left>-20;
+    document.body.classList.toggle('betel-menu-open',open);
+    if(open){
+      const overlap=Math.max(0,Math.min(mr.width,sr.right-mr.left));
+      map.style.visibility='visible';
+      map.style.pointerEvents='none';
+      map.style.clipPath=`inset(0 0 0 ${overlap}px)`;
+      map.style.webkitClipPath=`inset(0 0 0 ${overlap}px)`;
+    }else{
+      map.style.visibility='';
+      map.style.pointerEvents='';
+      map.style.clipPath='';
+      map.style.webkitClipPath='';
+      if(leafletMap)setTimeout(()=>leafletMap.invalidateSize(),60);
+    }
   }
 
   document.addEventListener('click',e=>{const nav=e.target.closest('.nav-item');if(nav){const view=nav.dataset.view;if(view==='crm')setTimeout(patchKanban,60);if(view==='mapa')setTimeout(()=>patchMap(true),120);if(view==='dashboard')setTimeout(patchStats,60);if(view==='config')setTimeout(versionChip,60)}setTimeout(syncMobileMenuAndMap,20);setTimeout(syncMobileMenuAndMap,180)});
