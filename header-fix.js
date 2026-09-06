@@ -1,4 +1,4 @@
-/* Betel Radar v0.8.1 — cabeçalho mobile build 8118 */
+/* Betel Radar v0.8.1 — cabeçalho mobile build 8119 */
 (function(){
   const LABELS=['Dashboard','Radar','Radar Visual','Mapa','Contatos','CRM','Agenda','Financeiro','Mensagens IA','Configurações'];
 
@@ -8,94 +8,120 @@
     return r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight;
   }
 
-  function smallestVisibleExact(text,maxTop=280){
-    const matches=[...document.querySelectorAll('body *')].filter(el=>{
-      if(!visible(el))return false;
-      const r=el.getBoundingClientRect();
-      if(r.top<0||r.top>maxTop||r.width>420||r.height>120)return false;
-      return el.textContent.trim()===text;
-    });
-    if(!matches.length)return null;
-    matches.sort((a,b)=>{
-      const ra=a.getBoundingClientRect(), rb=b.getBoundingClientRect();
-      return (ra.width*ra.height)-(rb.width*rb.height);
-    });
-    return matches[0];
-  }
-
   function currentSection(){
-    const existing=[...document.querySelectorAll('body *')].filter(el=>{
-      if(!visible(el))return false;
-      const r=el.getBoundingClientRect();
-      return r.top>=0&&r.top<280&&LABELS.includes(el.textContent.trim())&&r.width<300&&r.height<80;
-    });
-    if(existing.length){
-      existing.sort((a,b)=>a.getBoundingClientRect().top-b.getBoundingClientRect().top);
-      return existing[0].textContent.trim();
-    }
     const active=document.querySelector('.nav-item.active');
     if(active){
       const t=active.textContent.trim().replace(/\s+/g,' ');
       const hit=LABELS.find(x=>t===x||t.endsWith(x));
       if(hit)return hit;
     }
+    const tagged=document.querySelector('.betel-mobile-subtitle');
+    if(tagged&&LABELS.includes(tagged.textContent.trim()))return tagged.textContent.trim();
+    const matches=[...document.querySelectorAll('body *')].filter(el=>{
+      if(!visible(el))return false;
+      const r=el.getBoundingClientRect();
+      return r.top>=0&&r.top<280&&r.width<340&&r.height<90&&LABELS.includes(el.textContent.trim());
+    });
+    if(matches.length){
+      matches.sort((a,b)=>a.getBoundingClientRect().top-b.getBoundingClientRect().top);
+      return matches[0].textContent.trim();
+    }
     return 'Dashboard';
   }
 
-  function findSubtitle(title,section){
-    if(!title)return null;
-    const tr=title.getBoundingClientRect();
-    const candidates=[...document.querySelectorAll('body *')].filter(el=>{
-      if(el===title||!visible(el))return false;
+  function findTopSectionElement(section){
+    const matches=[...document.querySelectorAll('body *')].filter(el=>{
+      if(!visible(el))return false;
+      if(el.closest('.bottom-nav,.sidebar'))return false;
       const r=el.getBoundingClientRect();
-      if(r.top<tr.bottom-4||r.top>tr.bottom+55||r.width>320||r.height>60)return false;
-      const t=el.textContent.trim();
-      if(t!==section&&!LABELS.includes(t))return false;
-      return Math.abs(r.left-tr.left)<90;
+      return r.top>=0&&r.top<280&&r.left>80&&r.width<360&&r.height<90&&el.textContent.trim()===section;
     });
-    if(!candidates.length)return null;
-    candidates.sort((a,b)=>{
-      const ra=a.getBoundingClientRect(), rb=b.getBoundingClientRect();
-      return (Math.abs(ra.left-tr.left)+Math.abs(ra.top-tr.bottom))-(Math.abs(rb.left-tr.left)+Math.abs(rb.top-tr.bottom));
+    if(!matches.length)return null;
+    matches.sort((a,b)=>{
+      const ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect();
+      return (ra.width*ra.height)-(rb.width*rb.height);
     });
-    return candidates[0];
+    return matches[0];
   }
 
-  function apply(){
+  function ensureMobileHeader(){
     const mobile=window.matchMedia('(max-width:760px)').matches||window.innerWidth<=760;
-    const title=smallestVisibleExact('Betel Radar');
-    if(!title)return;
+    if(!mobile)return;
+
     const section=currentSection();
-    const sub=findSubtitle(title,section);
+    let wrap=document.querySelector('.betel-mobile-title-wrap');
+    let title=document.querySelector('.betel-mobile-title');
+    let sub=document.querySelector('.betel-mobile-subtitle');
 
-    for(const el of [title,sub]){
-      if(!el)continue;
-      if(mobile){
-        el.style.setProperty('transform','translateX(-15px)','important');
-        el.style.setProperty('transform-origin','left center','important');
-      }else{
-        el.style.removeProperty('transform');
-        el.style.removeProperty('transform-origin');
-      }
+    if(!wrap){
+      const sectionEl=findTopSectionElement(section);
+      if(!sectionEl)return;
+
+      wrap=document.createElement('div');
+      wrap.className='betel-mobile-title-wrap';
+      sectionEl.parentNode.insertBefore(wrap,sectionEl);
+      wrap.appendChild(sectionEl);
+      sub=sectionEl;
+      sub.classList.add('betel-mobile-subtitle');
+
+      title=document.createElement('div');
+      title.className='betel-mobile-title';
+      title.textContent='Betel Radar';
+      wrap.insertBefore(title,sub);
     }
 
+    if(!title){
+      title=document.createElement('div');
+      title.className='betel-mobile-title';
+      title.textContent='Betel Radar';
+      wrap.insertBefore(title,wrap.firstChild);
+    }
+    if(!sub){
+      sub=[...wrap.children].find(el=>el!==title&&LABELS.includes(el.textContent.trim()))||null;
+      if(sub)sub.classList.add('betel-mobile-subtitle');
+    }
+
+    title.textContent='Betel Radar';
+    if(sub)sub.textContent=section;
+
+    wrap.style.setProperty('display','flex','important');
+    wrap.style.setProperty('flex-direction','column','important');
+    wrap.style.setProperty('justify-content','center','important');
+    wrap.style.setProperty('align-items','flex-start','important');
+    wrap.style.setProperty('gap','0','important');
+    wrap.style.setProperty('transform','translateX(-15px)','important');
+    wrap.style.setProperty('transform-origin','left center','important');
+    wrap.style.setProperty('min-width','0','important');
+
+    title.style.setProperty('display','block','important');
+    title.style.setProperty('font-size','24px','important');
+    title.style.setProperty('line-height','1.03','important');
+    title.style.setProperty('font-weight','800','important');
     title.style.setProperty('letter-spacing','-.025em','important');
-    if(mobile){
-      title.style.setProperty('font-size','24px','important');
-      title.style.setProperty('line-height','1.03','important');
-      if(sub){
-        sub.style.setProperty('font-size','12px','important');
-        sub.style.setProperty('line-height','1.1','important');
-      }
+    title.style.setProperty('color','#171717','important');
+    title.style.setProperty('margin','0','important');
+    title.style.setProperty('padding','0','important');
+    title.style.setProperty('white-space','nowrap','important');
+
+    if(sub){
+      sub.style.setProperty('display','block','important');
+      sub.style.setProperty('font-size','12px','important');
+      sub.style.setProperty('line-height','1.1','important');
+      sub.style.setProperty('font-weight','500','important');
+      sub.style.setProperty('color','#7a7f87','important');
+      sub.style.setProperty('margin','5px 0 0','important');
+      sub.style.setProperty('padding','0','important');
+      sub.style.setProperty('white-space','nowrap','important');
     }
+
     document.title='Betel Radar — '+section;
   }
 
-  function schedule(){requestAnimationFrame(apply);[60,180,420,900,1800].forEach(ms=>setTimeout(apply,ms))}
+  function schedule(){requestAnimationFrame(ensureMobileHeader);[60,180,420,900,1800].forEach(ms=>setTimeout(ensureMobileHeader,ms))}
   document.addEventListener('click',schedule,true);
   window.addEventListener('pageshow',schedule);
   window.addEventListener('resize',schedule,{passive:true});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule()});
-  new MutationObserver(()=>requestAnimationFrame(apply)).observe(document.documentElement,{subtree:true,childList:true,characterData:true});
+  new MutationObserver(()=>requestAnimationFrame(ensureMobileHeader)).observe(document.documentElement,{subtree:true,childList:true});
   setTimeout(schedule,200);
 })();
