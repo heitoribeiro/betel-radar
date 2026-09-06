@@ -10,26 +10,24 @@
   async function patchMap(force=false){const el=document.getElementById('opportunityMap');if(!el||typeof opportunities==='undefined')return;const ok=await ensureLeaflet();if(!ok)return;el.classList.add('real-map');const points=opportunities.filter(o=>Array.isArray(o.coords)&&o.coords.length===2);if(!leafletMap){el.innerHTML='';leafletMap=L.map(el,{zoomControl:true,scrollWheelZoom:true}).setView([-12.82,-38.39],10);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(leafletMap);L.control.scale({imperial:false}).addTo(leafletMap)}markers.forEach(m=>m.remove());markers=[];const bounds=[];points.forEach(o=>{const cls=scoreClass(o.score);const bg=cls==='high'?'#0b8f55':cls==='medium'?'#d97706':'#374151';const markerHtml=`<div class="score-marker ${cls}" style="width:50px;height:50px;border-radius:50%;display:grid;place-items:center;background:${bg};color:#fff;border:4px solid #fff;box-shadow:0 5px 18px rgba(0,0,0,.45),0 0 0 2px rgba(0,0,0,.2);font-size:15px;font-weight:900;line-height:1">${o.score}</div>`;const icon=L.divIcon({className:'betel-score-icon',html:markerHtml,iconSize:[50,50],iconAnchor:[25,25]});const m=L.marker(o.coords,{icon}).addTo(leafletMap);m.bindPopup(`<div class="map-popup"><strong>${escapeHtml(o.title)}</strong><small>${escapeHtml(o.city)} • Score ${o.score}<br>${escapeHtml(o.advertiser||'')}</small><button class="text-btn" onclick="openDetail(${o.id})">Abrir ficha →</button></div>`);markers.push(m);bounds.push(o.coords)});if(bounds.length>1)leafletMap.fitBounds(bounds,{padding:[40,40],maxZoom:11});else if(bounds.length===1)leafletMap.setView(bounds[0],12);if(force)setTimeout(()=>leafletMap.invalidateSize(),100)}
   function refreshCurrentView(){const active=document.querySelector('.nav-item.active');const view=active?.dataset?.view;if(view==='dashboard')patchStats();else if(view==='crm')patchKanban();else if(view==='mapa')patchMap(true);else if(view==='config')versionChip()}
 
-  /* Detecta o drawer mobile pela posição real da sidebar, sem depender da classe do botão. */
-  let lastMenuState=null;
-  function detectMenuState(){
-    if(window.innerWidth>760){if(lastMenuState!==false){document.body.classList.remove('betel-menu-open');lastMenuState=false}return}
+  function syncMobileMenuAndMap(){
+    if(window.innerWidth>760){document.body.classList.remove('betel-menu-open');return;}
     const sidebar=document.querySelector('.sidebar');
     if(!sidebar)return;
     const r=sidebar.getBoundingClientRect();
-    const cs=getComputedStyle(sidebar);
-    const open=cs.display!=='none'&&cs.visibility!=='hidden'&&r.width>100&&r.right>Math.min(120,r.width*.25)&&r.left<40;
-    if(open!==lastMenuState){
-      document.body.classList.toggle('betel-menu-open',open);
-      lastMenuState=open;
-      if(!open&&leafletMap)setTimeout(()=>leafletMap.invalidateSize(),80);
+    const open=r.width>120 && r.right>80 && r.left>-20;
+    document.body.classList.toggle('betel-menu-open',open);
+    const map=document.getElementById('opportunityMap');
+    if(map){
+      map.style.visibility=open?'hidden':'';
+      map.style.pointerEvents=open?'none':'';
     }
+    if(!open&&leafletMap)setTimeout(()=>leafletMap.invalidateSize(),60);
   }
-  setInterval(detectMenuState,120);
-  window.addEventListener('resize',detectMenuState,{passive:true});
-  window.addEventListener('orientationchange',()=>setTimeout(detectMenuState,150),{passive:true});
 
-  document.addEventListener('click',e=>{const nav=e.target.closest('.nav-item');if(nav){const view=nav.dataset.view;if(view==='crm')setTimeout(patchKanban,60);if(view==='mapa')setTimeout(()=>patchMap(true),120);if(view==='dashboard')setTimeout(patchStats,60);if(view==='config')setTimeout(versionChip,60)}});
+  document.addEventListener('click',e=>{const nav=e.target.closest('.nav-item');if(nav){const view=nav.dataset.view;if(view==='crm')setTimeout(patchKanban,60);if(view==='mapa')setTimeout(()=>patchMap(true),120);if(view==='dashboard')setTimeout(patchStats,60);if(view==='config')setTimeout(versionChip,60)}setTimeout(syncMobileMenuAndMap,20);setTimeout(syncMobileMenuAndMap,180)});
+  window.addEventListener('resize',syncMobileMenuAndMap,{passive:true});
+  setInterval(syncMobileMenuAndMap,120);
   if(typeof window.renderAll==='function'){const originalRenderAll=window.renderAll;window.renderAll=function(){const result=originalRenderAll.apply(this,arguments);setTimeout(refreshCurrentView,0);return result}};
-  setTimeout(()=>{patchStats();versionChip();detectMenuState()},100);setTimeout(refreshCurrentView,500);
+  setTimeout(()=>{patchStats();versionChip();syncMobileMenuAndMap()},100);setTimeout(refreshCurrentView,500);
 })();
