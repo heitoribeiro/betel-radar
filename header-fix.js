@@ -1,4 +1,4 @@
-/* Betel Radar v0.8.1 — cabeçalho unificado build 8113 */
+/* Betel Radar v0.8.1 — cabeçalho unificado build 8114 */
 (function(){
   const LABELS=['Dashboard','Radar','Radar Visual','Mapa','Contatos','CRM','Agenda','Financeiro','Mensagens IA','Configurações'];
   const SUBS=[
@@ -26,14 +26,14 @@
           font-size:24px!important;
           line-height:1.03!important;
           margin:0!important;
-          transform:translateX(-10px)!important;
+          transform:translateX(-15px)!important;
         }
         .betel-platform-subtitle{
           font-size:12px!important;
           line-height:1.1!important;
           margin-top:5px!important;
           white-space:nowrap!important;
-          transform:translateX(-10px)!important;
+          transform:translateX(-15px)!important;
         }
       }
       @media(max-width:390px){
