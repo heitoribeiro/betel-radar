@@ -1,4 +1,4 @@
-/* Betel Radar v0.8.1 — cabeçalho mobile build 8120 */
+/* Betel Radar v0.8.1 — cabeçalho mobile build 8121 */
 (function(){
   const LABELS=['Dashboard','Radar','Radar Visual','Mapa','Contatos','CRM','Agenda','Financeiro','Mensagens IA','Configurações'];
 
@@ -45,8 +45,12 @@
   }
 
   function ensureBrandLogo(){
+    const existing=document.querySelector('[data-betel-logo="1"] img');
+    if(existing){
+      existing.src='./logo-br.svg?v=8121';
+      return;
+    }
     const candidates=[...document.querySelectorAll('body *')].filter(el=>{
-      if(el.dataset&&el.dataset.betelLogo==='1')return false;
       if((el.textContent||'').trim()!=='HB')return false;
       const r=el.getBoundingClientRect();
       return r.width>=24&&r.width<=90&&r.height>=24&&r.height<=90&&r.top>=0&&r.top<140&&r.right>innerWidth-180;
@@ -65,7 +69,7 @@
     el.style.setProperty('background','#080808','important');
     const img=document.createElement('img');
     img.alt='Betel Radar';
-    img.src='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAAAgACADASIAAhEBAxEB/8QAHQAAAQUBAQEBAAAAAAAAAAAAAAECAwQFBgcICf/EAEYQAAIBAwIDBQQHBgQDBAMAAAABAgMEEQUhEjFBBhMiUWFxgZEHMqGxwRRCUtHwI2JyksLh8RYzQ5OiM0RTgqPS/8QAGgEAAwEBAQEAAAAAAAAAAAAAAAECAwQFBv/EAC8RAAICAQMDAgQEBwAAAAAAAAABAhEDBBIhMUEFE1FhInGBkaGxwfAyQlLh8f/aAAwDAQACEQMRAD8A9VREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERA//Z';
+    img.src='./logo-br.svg?v=8121';
     img.style.cssText='display:block;width:100%;height:100%;object-fit:cover;border-radius:50%;';
     el.appendChild(img);
   }
