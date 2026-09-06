@@ -1,4 +1,4 @@
-/* Betel Radar v0.8.1 — cabeçalho unificado build 8116 */
+/* Betel Radar v0.8.1 — cabeçalho unificado build 8117 */
 (function(){
   const LABELS=['Dashboard','Radar','Radar Visual','Mapa','Contatos','CRM','Agenda','Financeiro','Mensagens IA','Configurações'];
   const SUBS=[
@@ -15,31 +15,22 @@
   ];
 
   function installStyles(){
-    if(document.getElementById('betelHeaderStyles'))return;
-    const s=document.createElement('style');
-    s.id='betelHeaderStyles';
+    let s=document.getElementById('betelHeaderStyles');
+    if(!s){s=document.createElement('style');s.id='betelHeaderStyles';document.head.appendChild(s)}
     s.textContent=`
       .betel-platform-title{letter-spacing:-.025em}
       .betel-platform-subtitle{display:block!important;color:#7a7f87!important;font-weight:500!important}
       @media(max-width:760px){
-        .betel-platform-title{
-          font-size:24px!important;
-          line-height:1.03!important;
-          margin:0!important;
-        }
-        .betel-platform-subtitle{
-          font-size:12px!important;
-          line-height:1.1!important;
-          margin-top:5px!important;
-          white-space:nowrap!important;
-        }
+        .betel-platform-title{font-size:24px!important;line-height:1.03!important;margin:0!important}
+        .betel-platform-subtitle{font-size:12px!important;line-height:1.1!important;margin-top:5px!important;white-space:nowrap!important}
+        .betel-title-wrap-mobile{margin-left:-15px!important}
       }
       @media(max-width:390px){
         .betel-platform-title{font-size:23px!important}
         .betel-platform-subtitle{font-size:11.5px!important}
       }
+      @media(min-width:761px){.betel-title-wrap-mobile{margin-left:0!important}}
     `;
-    document.head.appendChild(s);
   }
 
   function visible(el){
@@ -56,10 +47,7 @@
       if(hit)return hit;
     }
     const candidates=[...document.querySelectorAll('h1,h2')].filter(visible);
-    for(const el of candidates){
-      const t=el.textContent.trim();
-      if(LABELS.includes(t))return t;
-    }
+    for(const el of candidates){const t=el.textContent.trim();if(LABELS.includes(t))return t}
     const current=document.querySelector('.betel-platform-subtitle');
     return current?.textContent?.trim()||'Dashboard';
   }
@@ -91,22 +79,6 @@
     return null;
   }
 
-  function forceMobileOffset(title,sub){
-    const mobile=window.matchMedia('(max-width:760px)').matches;
-    for(const el of [title,sub]){
-      if(!el)continue;
-      if(mobile){
-        el.style.setProperty('position','relative','important');
-        el.style.setProperty('left','-15px','important');
-        el.style.setProperty('transform','none','important');
-      }else{
-        el.style.removeProperty('position');
-        el.style.removeProperty('left');
-        el.style.removeProperty('transform');
-      }
-    }
-  }
-
   function apply(){
     installStyles();
     const section=sectionName();
@@ -115,26 +87,28 @@
     title.classList.add('betel-platform-title');
     title.textContent='Betel Radar';
     let sub=findSubtitle(title);
-    if(sub){
-      sub.classList.add('betel-platform-subtitle');
-      sub.textContent=section;
-    }else{
-      sub=document.createElement('div');
-      sub.className='betel-platform-subtitle';
-      sub.textContent=section;
-      title.insertAdjacentElement('afterend',sub);
+    if(sub){sub.classList.add('betel-platform-subtitle');sub.textContent=section}
+    else{sub=document.createElement('div');sub.className='betel-platform-subtitle';sub.textContent=section;title.insertAdjacentElement('afterend',sub)}
+
+    const wrap=title.parentElement;
+    const mobile=window.matchMedia('(max-width:760px)').matches||window.innerWidth<=760;
+    if(wrap){
+      wrap.classList.toggle('betel-title-wrap-mobile',mobile);
+      if(mobile)wrap.style.setProperty('margin-left','-15px','important');
+      else wrap.style.removeProperty('margin-left');
     }
-    forceMobileOffset(title,sub);
+    if(mobile){
+      title.style.setProperty('margin-left','0','important');
+      sub.style.setProperty('margin-left','0','important');
+    }
     document.title='Betel Radar — '+section;
   }
 
-  function schedule(){
-    requestAnimationFrame(apply);
-    [80,260,700,1400,2500].forEach(ms=>setTimeout(apply,ms));
-  }
+  function schedule(){requestAnimationFrame(apply);[80,260,700,1400,2500].forEach(ms=>setTimeout(apply,ms))}
   document.addEventListener('click',schedule,true);
   window.addEventListener('pageshow',schedule);
   window.addEventListener('resize',schedule,{passive:true});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule()});
   new MutationObserver(()=>requestAnimationFrame(apply)).observe(document.documentElement,{subtree:true,childList:true});
   setTimeout(schedule,300);
 })();
