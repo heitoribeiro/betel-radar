@@ -1,0 +1,22 @@
+/* Betel Radar v0.8.1 — ajuste mobile Agenda build 8104 */
+@media (max-width:760px){
+  #agendaProductivity.v081-agenda-box{margin:12px 0 16px!important;border-radius:16px!important}
+  #agendaProductivity .v081-head{padding:11px 12px!important}
+  #agendaProductivity .v081-eyebrow{font-size:9px!important;letter-spacing:.1em!important}
+  #agendaProductivity .v081-title{font-size:13px!important;margin-top:1px!important}
+  #agendaProductivity .v081-sub{font-size:10px!important;line-height:1.25!important;margin-top:1px!important}
+  #agendaProductivity .v081-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important;padding:9px!important}
+  #agendaProductivity .v081-kpi{min-height:66px!important;padding:8px 6px 8px 9px!important;border-radius:12px!important;justify-content:center!important;text-align:left!important}
+  #agendaProductivity .v081-kpi:before{top:10px!important;bottom:10px!important;width:3px!important}
+  #agendaProductivity .v081-kpi span{font-size:9px!important;line-height:1.12!important;margin-bottom:4px!important;white-space:normal!important}
+  #agendaProductivity .v081-kpi b{font-size:22px!important;line-height:1!important}
+  #agendaProductivity .v081-kpi small{display:none!important}
+  #agendaProductivity .v081-actions{padding:0 9px 9px!important}
+  #agendaProductivity .v081-export{width:100%!important;margin:0!important;padding:10px 11px!important;border-radius:11px!important;font-size:12px!important}
+}
+@media (max-width:380px){
+  #agendaProductivity .v081-kpis{gap:5px!important;padding:8px!important}
+  #agendaProductivity .v081-kpi{min-height:62px!important;padding:7px 5px 7px 8px!important}
+  #agendaProductivity .v081-kpi span{font-size:8.5px!important}
+  #agendaProductivity .v081-kpi b{font-size:20px!important}
+}
