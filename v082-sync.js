@@ -1,10 +1,11 @@
-/* Betel Radar v0.8.2 — camada de sincronização build 8201 */
+/* Betel Radar v0.8.2 — camada de sincronização build 8202 */
 (function(){
   const VERSION='v0.8.2';
   const KEY_MODE='betel_data_mode';
   const KEY_ENDPOINT='betel_sync_endpoint';
   const KEY_LAST='betel_sync_last';
   const DEFAULT_INTERVAL_MINUTES=60;
+  const PANEL_SECTIONS=['Dashboard','Configurações'];
 
   const state={
     mode:localStorage.getItem(KEY_MODE)||'demo',
@@ -55,10 +56,20 @@
   function installStyles(){
     if(document.getElementById('v082SyncStyles'))return;
     const s=document.createElement('style');s.id='v082SyncStyles';s.textContent=`
-      .v082-sync-card{margin:18px 0;padding:16px;border:1px solid #e7e4df;border-radius:18px;background:linear-gradient(180deg,#fff,#faf9f6);box-shadow:0 10px 28px rgba(20,20,20,.055)}
-      .v082-sync-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}.v082-sync-title{font-weight:800;font-size:15px;color:#171717}.v082-sync-sub{font-size:12px;color:#777;margin-top:3px}.v082-badge{font-size:11px;font-weight:800;padding:6px 9px;border-radius:999px;background:#f1eee9;color:#72563b}.v082-badge.ok{background:#e8f7ef;color:#177a52}.v082-badge.warn{background:#fff4da;color:#946400}.v082-badge.err{background:#fde9ec;color:#a52e3e}
-      .v082-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}.v082-kpi{padding:12px;border-radius:14px;border:1px solid #ece8e2;background:#fff}.v082-kpi small{display:block;color:#858585;font-size:11px}.v082-kpi b{display:block;font-size:18px;margin-top:4px;color:#181818}.v082-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.v082-btn{border:1px solid #dedad4;background:#fff;border-radius:12px;padding:9px 12px;font:inherit;font-size:12px;font-weight:800;cursor:pointer}.v082-btn.primary{background:#171717;color:#fff;border-color:#171717}.v082-note{font-size:11px;color:#777;margin-top:10px;line-height:1.45}
-      @media(max-width:760px){.v082-grid{grid-template-columns:1fr 1fr}.v082-actions{display:grid;grid-template-columns:1fr}.v082-btn{width:100%}}
+      #v082SyncCard{position:static!important;inset:auto!important;transform:none!important;float:none!important;clear:both!important;width:auto!important;max-width:none!important;box-sizing:border-box!important;z-index:auto!important}
+      .v082-sync-card{margin:14px 0 18px;padding:14px 16px;border:1px solid #e7e4df;border-radius:16px;background:linear-gradient(180deg,#fff,#faf9f6);box-shadow:0 8px 22px rgba(20,20,20,.045);overflow:hidden}
+      .v082-sync-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.v082-sync-title{font-weight:800;font-size:14px;color:#171717}.v082-sync-sub{font-size:11px;color:#777;margin-top:2px}.v082-badge{flex:0 0 auto;font-size:10px;font-weight:800;padding:5px 8px;border-radius:999px;background:#f1eee9;color:#72563b;white-space:nowrap}.v082-badge.ok{background:#e8f7ef;color:#177a52}.v082-badge.warn{background:#fff4da;color:#946400}.v082-badge.err{background:#fde9ec;color:#a52e3e}
+      .v082-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}.v082-kpi{min-width:0;padding:10px 11px;border-radius:12px;border:1px solid #ece8e2;background:#fff}.v082-kpi small{display:block;color:#858585;font-size:10px;line-height:1.15}.v082-kpi b{display:block;font-size:16px;line-height:1.15;margin-top:4px;color:#181818;overflow:hidden;text-overflow:ellipsis}.v082-kpi .v082-date{font-size:11px;white-space:normal}
+      .v082-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}.v082-btn{appearance:none;border:1px solid #dedad4;background:#fff;border-radius:10px;padding:8px 11px;font:inherit;font-size:11px;font-weight:800;line-height:1.15;cursor:pointer;white-space:nowrap}.v082-btn.primary{background:#171717;color:#fff;border-color:#171717}.v082-btn:hover{filter:brightness(.98)}
+      .v082-details{margin-top:10px;border-top:1px solid #eeeae4;padding-top:8px}.v082-details summary{cursor:pointer;font-size:10px;font-weight:700;color:#777;list-style:none}.v082-details summary::-webkit-details-marker{display:none}.v082-details summary:before{content:'＋ ';font-weight:900}.v082-details[open] summary:before{content:'− '}.v082-note{font-size:10px;color:#777;margin-top:7px;line-height:1.45}
+      @media(max-width:760px){
+        .v082-sync-card{margin:10px 0 14px;padding:12px;border-radius:14px;box-shadow:none}
+        .v082-sync-head{align-items:flex-start}.v082-sync-title{font-size:13px}.v082-sync-sub{font-size:10px;max-width:180px}.v082-badge{font-size:9px;padding:4px 7px}
+        .v082-grid{grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.v082-kpi{padding:9px}.v082-kpi small{font-size:9px}.v082-kpi b{font-size:14px}.v082-kpi .v082-date{font-size:10px}
+        .v082-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.v082-btn{width:100%;padding:8px 7px;font-size:10px;white-space:normal}.v082-btn.primary{grid-column:1/-1}
+        .v082-details{margin-top:8px;padding-top:7px}.v082-note,.v082-details summary{font-size:9px}
+      }
+      @media(max-width:380px){.v082-actions{grid-template-columns:1fr}.v082-btn.primary{grid-column:auto}}
     `;document.head.appendChild(s);
   }
 
@@ -71,25 +82,52 @@
     return ['Produção','ok'];
   }
 
-  function findHost(){
-    const h=[...document.querySelectorAll('h1,h2,h3')].find(e=>e.offsetParent!==null&&/dashboard|configura/i.test(e.textContent||''));
-    return h?.closest('.view,.content-view,.page,.panel')||h?.parentElement||document.body;
+  function currentSection(){
+    const active=document.querySelector('.nav-item.active,[aria-current="page"]');
+    if(active){
+      const t=(active.textContent||'').trim().replace(/\s+/g,' ');
+      const labels=['Dashboard','Radar','Radar Visual','Mapa','Contatos','CRM','Agenda','Financeiro','Mensagens IA','Configurações'];
+      const hit=labels.find(x=>t===x||t.endsWith(x));
+      if(hit)return hit;
+    }
+    const visibleHeadings=[...document.querySelectorAll('h1,h2,h3')].filter(e=>e.offsetParent!==null);
+    const labels=['Dashboard','Radar Visual','Radar','Mapa','Contatos','CRM','Agenda','Financeiro','Mensagens IA','Configurações'];
+    for(const label of labels){if(visibleHeadings.some(h=>(h.textContent||'').trim().toLowerCase().includes(label.toLowerCase())))return label;}
+    return '';
+  }
+
+  function findHost(section){
+    const heading=[...document.querySelectorAll('h1,h2,h3')].find(e=>e.offsetParent!==null&&(e.textContent||'').trim().toLowerCase().includes(section.toLowerCase()));
+    if(!heading)return null;
+    const host=heading.closest('.view,.content-view,.page,.panel,main,section')||heading.parentElement;
+    return {host,heading};
+  }
+
+  function removePanel(){
+    const card=document.getElementById('v082SyncCard');
+    if(card)card.remove();
   }
 
   function render(){
     installStyles();
+    const section=currentSection();
+    if(!PANEL_SECTIONS.includes(section)){removePanel();return;}
+
+    const target=findHost(section);
+    if(!target){removePanel();return;}
+
     let card=document.getElementById('v082SyncCard');
-    if(!card){
-      card=document.createElement('section');card.id='v082SyncCard';card.className='v082-sync-card';
-      const host=findHost();
-      const anchor=[...host.querySelectorAll('h1,h2,h3')].find(e=>e.offsetParent!==null);
-      if(anchor)anchor.insertAdjacentElement('afterend',card); else host.prepend(card);
-    }
+    if(!card){card=document.createElement('section');card.id='v082SyncCard';card.className='v082-sync-card';}
+
+    if(card.parentElement!==target.host){card.remove();target.heading.insertAdjacentElement('afterend',card);}
+    else if(target.heading.nextElementSibling!==card){target.heading.insertAdjacentElement('afterend',card);}
+
     const [label,klass]=sourceStatus();
-    card.innerHTML=`<div class="v082-sync-head"><div><div class="v082-sync-title">Motor de coleta e disponibilidade</div><div class="v082-sync-sub">Betel Radar ${VERSION} · atualização prevista a cada ${state.intervalMinutes} min</div></div><span class="v082-badge ${klass}">${label}</span></div>
-    <div class="v082-grid"><div class="v082-kpi"><small>Modo</small><b>${state.mode==='demo'?'DEMO':'PRODUÇÃO'}</b></div><div class="v082-kpi"><small>Ativos</small><b>${state.active}</b></div><div class="v082-kpi"><small>Indisponíveis</small><b>${state.unavailable}</b></div><div class="v082-kpi"><small>Última sincronização</small><b style="font-size:12px">${fmtDate(state.lastSync)}</b></div></div>
-    <div class="v082-actions"><button class="v082-btn primary" id="v082SyncNow">Sincronizar agora</button><button class="v082-btn" id="v082ToggleMode">Alternar para ${state.mode==='demo'?'PRODUÇÃO':'DEMO'}</button><button class="v082-btn" id="v082SetEndpoint">Configurar endpoint</button></div>
-    <div class="v082-note">A coleta real somente será ativada quando houver endpoint autorizado da fonte. O front-end não executa crawling da OLX. Ausências consecutivas serão tratadas pelo backend como <b>missing</b>, depois <b>unavailable</b> e, conforme a política, <b>removed</b>.</div>`;
+    card.innerHTML=`<div class="v082-sync-head"><div><div class="v082-sync-title">Sincronização de oportunidades</div><div class="v082-sync-sub">Betel Radar ${VERSION} · atualização prevista a cada ${state.intervalMinutes} min</div></div><span class="v082-badge ${klass}">${label}</span></div>
+    <div class="v082-grid"><div class="v082-kpi"><small>Modo</small><b>${state.mode==='demo'?'DEMO':'PRODUÇÃO'}</b></div><div class="v082-kpi"><small>Ativos</small><b>${state.active}</b></div><div class="v082-kpi"><small>Indisponíveis</small><b>${state.unavailable}</b></div><div class="v082-kpi"><small>Última sincronização</small><b class="v082-date">${fmtDate(state.lastSync)}</b></div></div>
+    <div class="v082-actions"><button class="v082-btn primary" id="v082SyncNow">Sincronizar agora</button><button class="v082-btn" id="v082ToggleMode">${state.mode==='demo'?'Ativar PRODUÇÃO':'Voltar para DEMO'}</button><button class="v082-btn" id="v082SetEndpoint">Configurar fonte</button></div>
+    <details class="v082-details"><summary>Como funciona a disponibilidade</summary><div class="v082-note">A coleta real será ativada quando houver endpoint autorizado da fonte. O front-end não executa crawling da OLX. Ausências consecutivas são tratadas pelo backend como <b>missing</b>, depois <b>unavailable</b> e, conforme a política, <b>removed</b>.</div></details>`;
+
     card.querySelector('#v082SyncNow').onclick=syncNow;
     card.querySelector('#v082ToggleMode').onclick=()=>{state.mode=state.mode==='demo'?'production':'demo';localStorage.setItem(KEY_MODE,state.mode);render()};
     card.querySelector('#v082SetEndpoint').onclick=()=>{const v=prompt('Endpoint autorizado de sincronização:',state.endpoint||'');if(v!==null){state.endpoint=v.trim();localStorage.setItem(KEY_ENDPOINT,state.endpoint);render()}};
@@ -120,9 +158,12 @@
     window.BetelRadarSync={version:VERSION,state,normalizeListing,syncNow,setEndpoint(v){state.endpoint=String(v||'').trim();localStorage.setItem(KEY_ENDPOINT,state.endpoint);render()},setMode(v){state.mode=v==='production'?'production':'demo';localStorage.setItem(KEY_MODE,state.mode);render()}};
   }
 
+  function schedule(){[60,180,420].forEach(ms=>setTimeout(render,ms));}
   function run(){expose();render()}
-  document.addEventListener('click',()=>setTimeout(render,120));
+  document.addEventListener('click',schedule,true);
   window.addEventListener('pageshow',()=>setTimeout(run,150));
+  window.addEventListener('resize',()=>setTimeout(render,100),{passive:true});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(render,150)});
+  new MutationObserver(()=>requestAnimationFrame(render)).observe(document.documentElement,{subtree:true,childList:true});
   setTimeout(run,700);
 })();
