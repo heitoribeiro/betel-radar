@@ -1,4 +1,4 @@
-/* Betel Radar v0.8.1 — cabeçalho mobile build 8121 */
+/* Betel Radar v0.8.1 — cabeçalho mobile build 8122 */
 (function(){
   const LABELS=['Dashboard','Radar','Radar Visual','Mapa','Contatos','CRM','Agenda','Financeiro','Mensagens IA','Configurações'];
 
@@ -44,12 +44,39 @@
     return matches[0];
   }
 
+  function styleBrandLogo(el,img){
+    el.style.setProperty('overflow','hidden','important');
+    el.style.setProperty('padding','0','important');
+    el.style.setProperty('border-radius','50%','important');
+    el.style.setProperty('background','#111','important');
+    el.style.setProperty('display','flex','important');
+    el.style.setProperty('align-items','center','important');
+    el.style.setProperty('justify-content','center','important');
+    img.style.setProperty('display','block','important');
+    img.style.setProperty('width','100%','important');
+    img.style.setProperty('height','100%','important');
+    img.style.setProperty('object-fit','contain','important');
+    img.style.setProperty('object-position','center','important');
+    img.style.setProperty('border-radius','50%','important');
+    img.style.setProperty('padding','2px','important');
+    img.style.setProperty('box-sizing','border-box','important');
+    img.style.setProperty('background','transparent','important');
+  }
+
   function ensureBrandLogo(){
-    const existing=document.querySelector('[data-betel-logo="1"] img');
-    if(existing){
-      existing.src='./logo-br.svg?v=8121';
+    const holder=document.querySelector('[data-betel-logo="1"]');
+    if(holder){
+      let img=holder.querySelector('img');
+      if(!img){
+        img=document.createElement('img');
+        img.alt='Betel Radar';
+        holder.appendChild(img);
+      }
+      img.src='./logo-br.svg?v=8122';
+      styleBrandLogo(holder,img);
       return;
     }
+
     const candidates=[...document.querySelectorAll('body *')].filter(el=>{
       if((el.textContent||'').trim()!=='HB')return false;
       const r=el.getBoundingClientRect();
@@ -60,18 +87,15 @@
       const ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect();
       return rb.right-ra.right||ra.top-rb.top;
     });
+
     const el=candidates[0];
     el.textContent='';
     el.dataset.betelLogo='1';
-    el.style.setProperty('overflow','hidden','important');
-    el.style.setProperty('padding','0','important');
-    el.style.setProperty('border-radius','50%','important');
-    el.style.setProperty('background','#080808','important');
     const img=document.createElement('img');
     img.alt='Betel Radar';
-    img.src='./logo-br.svg?v=8121';
-    img.style.cssText='display:block;width:100%;height:100%;object-fit:cover;border-radius:50%;';
+    img.src='./logo-br.svg?v=8122';
     el.appendChild(img);
+    styleBrandLogo(el,img);
   }
 
   function ensureMobileHeader(){
@@ -87,14 +111,12 @@
     if(!wrap){
       const sectionEl=findTopSectionElement(section);
       if(!sectionEl)return;
-
       wrap=document.createElement('div');
       wrap.className='betel-mobile-title-wrap';
       sectionEl.parentNode.insertBefore(wrap,sectionEl);
       wrap.appendChild(sectionEl);
       sub=sectionEl;
       sub.classList.add('betel-mobile-subtitle');
-
       title=document.createElement('div');
       title.className='betel-mobile-title';
       title.textContent='Betel Radar';
