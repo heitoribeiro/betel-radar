@@ -1,4 +1,4 @@
-/* Betel Radar v0.8.1 — cabeçalho mobile build 8119 */
+/* Betel Radar v0.8.1 — cabeçalho mobile build 8120 */
 (function(){
   const LABELS=['Dashboard','Radar','Radar Visual','Mapa','Contatos','CRM','Agenda','Financeiro','Mensagens IA','Configurações'];
 
@@ -44,7 +44,34 @@
     return matches[0];
   }
 
+  function ensureBrandLogo(){
+    const candidates=[...document.querySelectorAll('body *')].filter(el=>{
+      if(el.dataset&&el.dataset.betelLogo==='1')return false;
+      if((el.textContent||'').trim()!=='HB')return false;
+      const r=el.getBoundingClientRect();
+      return r.width>=24&&r.width<=90&&r.height>=24&&r.height<=90&&r.top>=0&&r.top<140&&r.right>innerWidth-180;
+    });
+    if(!candidates.length)return;
+    candidates.sort((a,b)=>{
+      const ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect();
+      return rb.right-ra.right||ra.top-rb.top;
+    });
+    const el=candidates[0];
+    el.textContent='';
+    el.dataset.betelLogo='1';
+    el.style.setProperty('overflow','hidden','important');
+    el.style.setProperty('padding','0','important');
+    el.style.setProperty('border-radius','50%','important');
+    el.style.setProperty('background','#080808','important');
+    const img=document.createElement('img');
+    img.alt='Betel Radar';
+    img.src='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAAAgACADASIAAhEBAxEB/8QAHQAAAQUBAQEBAAAAAAAAAAAAAAECAwQFBgcICf/EAEYQAAIBAwIDBQQHBgQDBAMAAAABAgMEEQUhEjFBBhMiUWFxgZEHMqGxwRRCUtHwI2JyksLh8RYzQ5OiM0RTgqPS/8QAGgEAAwEBAQEAAAAAAAAAAAAAAAECAwQFBv/EAC8RAAICAQMDAgQEBwAAAAAAAAABAhEDBBIhMUEFE1FhInGBkaGxwfAyQlLh8f/aAAwDAQACEQMRAD8A9VREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERA//Z';
+    img.style.cssText='display:block;width:100%;height:100%;object-fit:cover;border-radius:50%;';
+    el.appendChild(img);
+  }
+
   function ensureMobileHeader(){
+    ensureBrandLogo();
     const mobile=window.matchMedia('(max-width:760px)').matches||window.innerWidth<=760;
     if(!mobile)return;
 
