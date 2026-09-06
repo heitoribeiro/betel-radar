@@ -1,4 +1,4 @@
-/* Betel Radar v0.8.1 — cabeçalho unificado build 8114 */
+/* Betel Radar v0.8.1 — cabeçalho unificado build 8115 */
 (function(){
   const LABELS=['Dashboard','Radar','Radar Visual','Mapa','Contatos','CRM','Agenda','Financeiro','Mensagens IA','Configurações'];
   const SUBS=[
@@ -22,23 +22,27 @@
       .betel-platform-title{letter-spacing:-.025em}
       .betel-platform-subtitle{display:block!important;color:#7a7f87!important;font-weight:500!important}
       @media(max-width:760px){
+        .betel-title-group{transform:translateX(-15px)!important}
         .betel-platform-title{
           font-size:24px!important;
           line-height:1.03!important;
           margin:0!important;
-          transform:translateX(-15px)!important;
+          transform:none!important;
         }
         .betel-platform-subtitle{
           font-size:12px!important;
           line-height:1.1!important;
           margin-top:5px!important;
           white-space:nowrap!important;
-          transform:translateX(-15px)!important;
+          transform:none!important;
         }
       }
       @media(max-width:390px){
         .betel-platform-title{font-size:23px!important}
         .betel-platform-subtitle{font-size:11.5px!important}
+      }
+      @media(min-width:761px){
+        .betel-title-group{transform:none!important}
       }
     `;
     document.head.appendChild(s);
@@ -98,6 +102,8 @@
     const section=sectionName();
     const title=findTitle(section);
     if(!title)return;
+    const group=title.parentElement;
+    if(group)group.classList.add('betel-title-group');
     title.classList.add('betel-platform-title');
     title.textContent='Betel Radar';
     const sub=findSubtitle(title);
