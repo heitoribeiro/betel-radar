@@ -1,4 +1,4 @@
-/* Betel Radar v0.8.1 — cabeçalho mobile build 8122 */
+/* Betel Radar v0.8.1 — cabeçalho mobile build 8123 */
 (function(){
   const LABELS=['Dashboard','Radar','Radar Visual','Mapa','Contatos','CRM','Agenda','Financeiro','Mensagens IA','Configurações'];
 
@@ -53,12 +53,12 @@
     el.style.setProperty('align-items','center','important');
     el.style.setProperty('justify-content','center','important');
     img.style.setProperty('display','block','important');
-    img.style.setProperty('width','100%','important');
-    img.style.setProperty('height','100%','important');
+    img.style.setProperty('width','82%','important');
+    img.style.setProperty('height','82%','important');
     img.style.setProperty('object-fit','contain','important');
     img.style.setProperty('object-position','center','important');
     img.style.setProperty('border-radius','50%','important');
-    img.style.setProperty('padding','2px','important');
+    img.style.setProperty('padding','0','important');
     img.style.setProperty('box-sizing','border-box','important');
     img.style.setProperty('background','transparent','important');
   }
@@ -72,7 +72,7 @@
         img.alt='Betel Radar';
         holder.appendChild(img);
       }
-      img.src='./logo-br.svg?v=8122';
+      img.src='./logo-br.svg?v=8123';
       styleBrandLogo(holder,img);
       return;
     }
@@ -93,7 +93,7 @@
     el.dataset.betelLogo='1';
     const img=document.createElement('img');
     img.alt='Betel Radar';
-    img.src='./logo-br.svg?v=8122';
+    img.src='./logo-br.svg?v=8123';
     el.appendChild(img);
     styleBrandLogo(el,img);
   }
