@@ -1,4 +1,4 @@
-/* Betel Radar v0.8.1 — fix mobile Agenda build 8109 */
+/* Betel Radar v0.8.1 — fix mobile Agenda build 8213 */
 (function(){
   function getFollowCard(){
     const buttons=[...document.querySelectorAll('button')].filter(b=>b.offsetParent!==null&&b.textContent.trim()==='Abrir ficha');
@@ -12,6 +12,26 @@
     }
     return null;
   }
+
+  function getEmptyAgendaState(){
+    const phrase='nenhum follow-up programado';
+    const vw=window.innerWidth;
+    const matches=[...document.querySelectorAll('p,div,section')].filter(el=>{
+      if(el.offsetParent===null)return false;
+      const text=(el.textContent||'').trim().toLowerCase();
+      if(!text.includes(phrase))return false;
+      return ![...el.children].some(ch=>(ch.textContent||'').trim().toLowerCase().includes(phrase));
+    });
+    let el=matches[0]||null;
+    while(el&&el!==document.body){
+      const r=el.getBoundingClientRect();
+      if(r.width>=vw*.76&&r.width<=vw*.98&&r.height>=80&&r.height<=520)return el;
+      el=el.parentElement;
+    }
+    return null;
+  }
+
+  function getAgendaTarget(){return getFollowCard()||getEmptyAgendaState()}
 
   function moveBoxToStableRow(box,target){
     if(!box||!target||box.dataset.mobileReparented==='1')return;
@@ -32,7 +52,7 @@
     if(!mobile)return;
     const box=document.getElementById('agendaProductivity');
     if(!box)return;
-    const target=getFollowCard();
+    const target=getAgendaTarget();
     if(target)moveBoxToStableRow(box,target);
 
     const head=box.querySelector('.v081-head'),grid=box.querySelector('.v081-kpis'),cards=[...box.querySelectorAll('.v081-kpi')],actions=box.querySelector('.v081-actions'),button=box.querySelector('.v081-export');
