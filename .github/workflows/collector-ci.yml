@@ -10,6 +10,7 @@ on:
       - 'v082-map-data-bridge.js'
       - 'v082-opportunity-detail.js'
       - 'v082-admin-tools.js'
+      - 'v082-data-correction.js'
       - 'index.html'
       - 'service-worker.js'
       - '.github/workflows/betel-sync.yml'
@@ -25,6 +26,7 @@ on:
       - 'v082-map-data-bridge.js'
       - 'v082-opportunity-detail.js'
       - 'v082-admin-tools.js'
+      - 'v082-data-correction.js'
       - 'index.html'
       - 'service-worker.js'
       - '.github/workflows/betel-sync.yml'
@@ -66,3 +68,4 @@ jobs:
           node --check v082-map-data-bridge.js
           node --check v082-opportunity-detail.js
           node --check v082-admin-tools.js
+          node --check v082-data-correction.js
