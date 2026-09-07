@@ -1,4 +1,4 @@
-/* Betel Radar v0.8.2 — camada de sincronização build 8204 */
+/* Betel Radar v0.8.2 — camada de sincronização build 8205 */
 (function(){
   const VERSION='v0.8.2';
   const KEY_MODE='betel_data_mode';
@@ -96,6 +96,7 @@
     if(rendering)return;rendering=true;
     try{
       installStyles();const section=currentSection();if(!PANEL_SECTIONS.includes(section)){removePanel();return}
+      if(section==='Dashboard'&&innerWidth<=760){removePanel();return}
       const target=section==='Dashboard'?dashboardTarget():configTarget();if(!target){removePanel();return}
       let card=document.getElementById('v082SyncCard');if(!card){card=document.createElement('section');card.id='v082SyncCard'}
       card.className='v082-sync-card '+(section==='Dashboard'?'v082-dashboard':'v082-config')+(state.mobileOpen?' v082-open':'');
