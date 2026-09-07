@@ -42,6 +42,19 @@ test('anuncio que reaparece volta a active e zera ausencias',()=>{
   assert.equal(rows[0].first_seen_at,old.first_seen_at);
 });
 
+test('preserva preco conhecido quando indice externo omite preco',()=>{
+  const old={source:'olx',external_id:'20',title:'Anúncio',price:1300000,area_m2:180000,availability_status:'active',first_seen_at:'2026-09-01T00:00:00.000Z'};
+  const {rows}=reconcileSnapshot([old],[{source:'olx',external_id:'20',title:'Anúncio atualizado',price:null,area_m2:null}],{now:'2026-09-07T04:00:00.000Z'});
+  assert.equal(rows[0].price,1300000);
+  assert.equal(rows[0].area_m2,180000);
+});
+
+test('novo preco informado pelo indice substitui preco anterior',()=>{
+  const old={source:'olx',external_id:'21',title:'Anúncio',price:1000000,availability_status:'active',first_seen_at:'2026-09-01T00:00:00.000Z'};
+  const {rows}=reconcileSnapshot([old],[{source:'olx',external_id:'21',title:'Anúncio',price:1100000}],{now:'2026-09-07T04:00:00.000Z'});
+  assert.equal(rows[0].price,1100000);
+});
+
 test('confirmacao manual de indisponibilidade nao reativa por indice externo',()=>{
   const old={source:'vivareal',external_id:'10',title:'Anúncio antigo',availability_status:'unavailable',verification_status:'stale',manual_availability_lock:true,manual_unavailable_reason:'confirmado',manual_unavailable_at:'2026-09-07T02:00:00.000Z',unavailable_at:'2026-09-07T02:00:00.000Z',first_seen_at:'2026-09-01T00:00:00.000Z'};
   const {rows,stats}=reconcileSnapshot([old],[{source:'vivareal',external_id:'10',title:'Ainda indexado'}],{now:'2026-09-07T03:00:00.000Z'});
