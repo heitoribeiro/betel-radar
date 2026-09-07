@@ -5,29 +5,49 @@ Betel Drones — Radar de Oportunidades.
 ## Produção
 
 - Versão: v0.8.2
+- Front-end publicado: build 8205
 - Hospedagem: GitHub Pages
 - URL: https://heitoribeiro.github.io/betel-radar/
 - Betel Cloud: Supabase com configuração pública incorporada à versão online
 
 ## v0.8.2 — Motor de coleta
 
-A v0.8.2 inicia a infraestrutura para substituir gradualmente os imóveis DEMO por anúncios reais provenientes de fonte autorizada.
+A v0.8.2 prepara a substituição gradual dos imóveis DEMO por anúncios reais provenientes de fonte autorizada.
+
+Já implementado no repositório:
 
 - modelo de banco para fontes, anúncios e execuções de sincronização;
 - deduplicação por `source + external_id`;
 - controle de disponibilidade com estados `active`, `missing`, `unavailable` e `removed`;
 - registro de `first_seen_at`, `last_seen_at` e ausências consecutivas;
+- motor de reconciliação independente da fonte;
+- persistência preparada via Supabase REST usando service role somente no backend;
+- testes automatizados da política de disponibilidade;
+- workflow GitHub Actions preparado para execução horária;
 - camada de sincronização no front-end;
-- painel de status com modo DEMO/PRODUÇÃO, última sincronização e contadores;
-- contrato de backend preparado para API/feed autorizado da OLX;
-- intervalo inicial previsto de 60 minutos.
+- painel de status com modo DEMO/PRODUÇÃO;
+- contrato preparado para API/feed/endpoint autorizado da OLX.
 
 Arquivos principais:
+
 - `supabase/migrations/20260906_v082_opportunity_sync.sql`
 - `v082-sync.js`
-- `collector/README.md`
+- `collector/sync-engine.js`
+- `collector/supabase-rest.js`
+- `collector/run-sync.js`
+- `collector/sync-engine.test.js`
+- `.github/workflows/betel-sync.yml`
 
-A coleta real permanece desativada até que exista endpoint/API/feed autorizado. O front-end não realiza crawling da OLX.
+A coleta real permanece desativada até que a migration esteja aplicada no Supabase, os secrets do backend estejam configurados e exista endpoint/API/feed autorizado. O front-end não realiza crawling da OLX.
+
+## Próximos passos para PRODUÇÃO
+
+1. aplicar `supabase/migrations/20260906_v082_opportunity_sync.sql` no projeto Supabase;
+2. aguardar/obter o mecanismo autorizado da OLX;
+3. configurar os secrets do workflow;
+4. homologar uma execução manual;
+5. habilitar o ciclo horário com `BETEL_SYNC_ENABLED=true`;
+6. após validar os anúncios reais, mudar o Radar de DEMO para PRODUÇÃO.
 
 ## Principais melhorias
 
