@@ -67,9 +67,19 @@ const DB_FIELDS=new Set([
 export function toDbRow(row){
   const out={};
   for(const [key,value] of Object.entries(row||{}))if(DB_FIELDS.has(key)&&value!==undefined)out[key]=value;
-  if(!out.raw_payload)out.raw_payload={};
-  if(!Array.isArray(out.image_urls))out.image_urls=[];
+  if(Object.prototype.hasOwnProperty.call(out,'raw_payload')&&!out.raw_payload)out.raw_payload={};
+  if(Object.prototype.hasOwnProperty.call(out,'image_urls')&&!Array.isArray(out.image_urls))out.image_urls=[];
   return out;
+}
+
+export async function patchListing(source,externalId,patch){
+  if(!source||!externalId)throw new Error('patchListing exige source e external_id');
+  const clean=toDbRow(patch);
+  delete clean.source;delete clean.external_id;
+  if(!Object.keys(clean).length)return 0;
+  const params=new URLSearchParams({source:`eq.${source}`,external_id:`eq.${externalId}`});
+  await request(`/rest/v1/source_listings?${params}`,{method:'PATCH',prefer:'return=minimal',body:clean});
+  return 1;
 }
 
 export async function upsertListings(rows,{chunkSize=200}={}){
