@@ -38,6 +38,7 @@ jobs:
           BETEL_UNAVAILABLE_AFTER_MISSES: ${{ secrets.BETEL_UNAVAILABLE_AFTER_MISSES }}
           BETEL_REMOVE_AFTER_HOURS: ${{ secrets.BETEL_REMOVE_AFTER_HOURS }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           if [ "$BETEL_SYNC_ENABLED" != "true" ]; then
