@@ -24,12 +24,12 @@ function normalizeNumber(text){
   const s=String(text).replace(/\./g,'').replace(',','.').replace(/[^0-9.]/g,'');
   const n=Number(s);return Number.isFinite(n)?n:null;
 }
-function extractPrice(text){
-  const m=String(text||'').match(/R\$\s*([0-9][0-9.]*?(?:,[0-9]{1,2})?)(?:\s|$|\D)/i);
+export function extractPrice(text){
+  const m=String(text||'').match(/R\$\s*([0-9][0-9.,]*)/i);
   return m?normalizeNumber(m[1]):null;
 }
-function extractArea(text){
-  const m=String(text||'').match(/([0-9][0-9.,]*)\s*m(?:²|2)\b/i);
+export function extractArea(text){
+  const m=String(text||'').match(/([0-9][0-9.,]*)\s*(?:m(?:²|2)|metros?\s+quadrados?)/i);
   return m?normalizeNumber(m[1]):null;
 }
 function inferPropertyType(text){
