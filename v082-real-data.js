@@ -1,6 +1,6 @@
-/* Betel Radar v0.8.2 — dados reais como fonte principal, build 8209 */
+/* Betel Radar v0.8.2 — dados reais como fonte principal, build 8210 */
 (function(){
-  const BUILD='8209';
+  const BUILD='8210';
   const MODE_KEY='betel_data_mode';
   const ENDPOINT_KEY='betel_sync_endpoint';
   const USER_FIELDS=['status','followUp','followUpNote','activities','generatedHistory','messageHistory','proposalStatus','quoteValue','closedValue','paidValue','paymentStatus','commercialChannel','images','coverIndex','drone','pano','photos','quality'];
@@ -30,6 +30,14 @@
     if(['Fazenda','Sítio','Chácara'].includes(type))s+=8;else s+=5;
     return Math.max(60,Math.min(100,s))
   }
+  function locationLabel(o){
+    const p=o.geocodePrecision||o.geocode_precision||'';
+    if(p==='exact')return 'Localização exata informada';
+    if(p==='address')return 'Localização aproximada — endereço';
+    if(p==='neighborhood')return 'Localização aproximada — bairro/localidade';
+    if(p==='city')return 'Localização aproximada — município';
+    return (num(o.latitude)!==null&&num(o.longitude)!==null)?'Localização disponível':'Sem localização suficiente'
+  }
   function capturePrior(){
     const list=Array.isArray(window.opportunities)?window.opportunities:[];
     list.filter(o=>o&&o.sourceListing).forEach(o=>priorByKey.set(keyOf(o),{...o}))
@@ -40,6 +48,8 @@
     const verification=o.verificationStatus||o.verification_status||'discovered';
     const discoveredVia=o.discoveredVia||o.discovered_via||'';
     const discoveryLabel=verification==='verified'?'Verificado pela fonte':(discoveredVia==='brave_search'?'Descoberto via Brave':'Descoberto na web');
+    const hasCoords=num(o.latitude)!==null&&num(o.longitude)!==null;
+    const locLabel=locationLabel(o);
     const fresh={
       ...o,
       id:stableId(o),
@@ -54,19 +64,28 @@
       url:o.url||o.sourceUrl||o.source_url||'',
       title:o.title||'Imóvel descoberto na web',
       city:o.city||'',
+      neighborhood:o.neighborhood||'',
+      addressText:o.addressText||o.address_text||'',
       advertiser:o.advertiser||`${sourceLabel} · anunciante não identificado`,
       advertiserType:o.advertiserType||o.advertiser_type||'Não identificado',
       type:typeLabel(o),
       price,
       areaM2:area,
-      coords:(num(o.latitude)!==null&&num(o.longitude)!==null)?[num(o.latitude),num(o.longitude)]:null,
+      coords:hasCoords?[num(o.latitude),num(o.longitude)]:null,
+      geocodeStatus:o.geocodeStatus||o.geocode_status||'',
+      geocodePrecision:o.geocodePrecision||o.geocode_precision||'',
+      geocodeSource:o.geocodeSource||o.geocode_source||'',
+      geocodeLabel:o.geocodeLabel||o.geocode_label||'',
+      geocodeQuery:o.geocodeQuery||o.geocode_query||'',
+      geocodedAt:o.geocodedAt||o.geocoded_at||'',
+      locationPrecisionLabel:locLabel,
       score:scoreFor(o),
       status:'Novo',
       drone:false,
       pano:false,
       photos:imgs.length,
       quality:'unknown',
-      tags:[sourceLabel,discoveryLabel,'Visual não verificado'],
+      tags:[sourceLabel,discoveryLabel,'Visual não verificado',...(hasCoords?[locLabel]:[])],
       images:imgs,
       coverIndex:0,
       followUp:null,followUpNote:'',activities:[],generatedHistory:[],messageHistory:[],
