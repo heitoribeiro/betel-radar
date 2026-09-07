@@ -7,6 +7,7 @@ on:
       - 'v080.js'
       - 'v082-sync.js'
       - 'v082-real-data.js'
+      - 'v082-map-data-bridge.js'
       - 'v082-opportunity-detail.js'
       - 'index.html'
       - 'service-worker.js'
@@ -20,6 +21,7 @@ on:
       - 'v080.js'
       - 'v082-sync.js'
       - 'v082-real-data.js'
+      - 'v082-map-data-bridge.js'
       - 'v082-opportunity-detail.js'
       - 'index.html'
       - 'service-worker.js'
@@ -59,4 +61,5 @@ jobs:
           node --check v080.js
           node --check v082-sync.js
           node --check v082-real-data.js
+          node --check v082-map-data-bridge.js
           node --check v082-opportunity-detail.js
