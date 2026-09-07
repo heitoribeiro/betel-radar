@@ -1,6 +1,6 @@
 # Ativação da Brave Search API no Betel Radar
 
-A automação de descoberta já está pronta no repositório, mas permanece desativada até a chave da Brave Search API e os secrets do GitHub Actions serem configurados.
+A automação de descoberta já está pronta no repositório. Para ativar, os secrets abaixo devem existir no GitHub Actions.
 
 ## Secrets do GitHub Actions
 
@@ -9,7 +9,9 @@ No repositório, abra **Settings → Secrets and variables → Actions → New r
 - `BETEL_WEB_DISCOVERY_ENABLED` = `true`
 - `BRAVE_SEARCH_API_KEY` = chave da Brave Search API
 - `SUPABASE_URL` = URL do projeto Betel-Radar
-- `SUPABASE_SERVICE_ROLE_KEY` = service role do Supabase
+- `SUPABASE_SECRET_KEY` = secret key moderna do Supabase (`sb_secret_...`)
+
+O backend também aceita temporariamente `SUPABASE_SERVICE_ROLE_KEY` como compatibilidade legada, mas a preferência é `SUPABASE_SECRET_KEY`.
 
 Opcionalmente:
 
@@ -18,9 +20,7 @@ Opcionalmente:
 
 ## Segurança
 
-Não envie `SUPABASE_SERVICE_ROLE_KEY` em chats, issues ou commits. Ela deve existir somente como secret do backend.
-
-A chave Brave também deve permanecer em GitHub Secrets e não ser incorporada no front-end.
+Não envie `SUPABASE_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY` ou `BRAVE_SEARCH_API_KEY` em chats, issues ou commits. Elas devem existir somente como secrets do backend.
 
 ## Teste
 
