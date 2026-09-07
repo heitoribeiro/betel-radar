@@ -45,6 +45,11 @@ export async function listListings(source,{discoveredVia,verificationStatus}={})
   return await request(`/rest/v1/source_listings?${params}`);
 }
 
+export async function listActiveListings(){
+  const params=new URLSearchParams({availability_status:'eq.active',select:'*',order:'last_seen_at.desc'});
+  return await request(`/rest/v1/source_listings?${params}`);
+}
+
 export async function createSyncRun(source,metadata={}){
   const rows=await request('/rest/v1/sync_runs',{method:'POST',prefer:'return=representation',body:[{source,status:'running',metadata}]});
   return rows?.[0]||null;
@@ -56,12 +61,12 @@ export async function finishSyncRun(id,patch){
 }
 
 const DB_FIELDS=new Set([
-  'source','external_id','source_url','title','description','advertiser','advertiser_type','listing_type','property_type','price','condominium_fee','iptu','city','state','neighborhood','address_text','latitude','longitude','bedrooms','bathrooms','parking_spaces','area_m2','image_urls','raw_payload','availability_status','first_seen_at','last_seen_at','missing_since','unavailable_at','removed_at','consecutive_misses','content_hash','discovered_via','verification_status','discovery_query','discovered_at','last_verified_at','source_rank'
+  'source','external_id','source_url','title','description','advertiser','advertiser_type','listing_type','property_type','price','condominium_fee','iptu','city','state','neighborhood','address_text','latitude','longitude','bedrooms','bathrooms','parking_spaces','area_m2','image_urls','raw_payload','availability_status','first_seen_at','last_seen_at','missing_since','unavailable_at','removed_at','consecutive_misses','content_hash','discovered_via','verification_status','discovery_query','discovered_at','last_verified_at','source_rank','geocode_status','geocode_precision','geocode_source','geocode_query','geocode_label','geocode_confidence','geocoded_at','location_signature'
 ]);
 
 export function toDbRow(row){
   const out={};
-  for(const [key,value] of Object.entries(row||{}))if(DB_FIELDS.has(key))out[key]=value;
+  for(const [key,value] of Object.entries(row||{}))if(DB_FIELDS.has(key)&&value!==undefined)out[key]=value;
   if(!out.raw_payload)out.raw_payload={};
   if(!Array.isArray(out.image_urls))out.image_urls=[];
   return out;
