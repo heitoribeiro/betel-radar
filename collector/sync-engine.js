@@ -1,11 +1,12 @@
 /* Betel Radar v0.8.2 — motor de reconciliação de anúncios
- * Independente da fonte. O adaptador autorizado entrega um snapshot e este motor
+ * Independente da fonte. O adaptador entrega um snapshot e este motor
  * decide o ciclo active -> missing -> unavailable -> removed.
  */
 
 export const DEFAULT_POLICY={
   unavailableAfterMisses:2,
-  removeAfterHours:168
+  removeAfterHours:168,
+  keepActiveUntilUnavailable:false
 };
 
 export function listingKey(row){
@@ -53,7 +54,7 @@ export function reconcileSnapshot(existingRows,incomingRows,options={}){
       result.push(old);continue;
     }
     const misses=(Number(old.consecutive_misses)||0)+1;
-    let status='missing';
+    let status=policy.keepActiveUntilUnavailable?'active':'missing';
     let missingSince=old.missing_since||now;
     let unavailableAt=old.unavailable_at||null;
     let removedAt=old.removed_at||null;
