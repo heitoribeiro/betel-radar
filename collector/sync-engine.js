@@ -35,7 +35,7 @@ export function reconcileSnapshot(existingRows,incomingRows,options={}){
   const existing=new Map((existingRows||[]).map(x=>[listingKey(x),{...x}]));
   const incoming=new Map((incomingRows||[]).map(x=>[listingKey(x),normalizeIncoming(x,now)]));
   const result=[];
-  const stats={found:incoming.size,inserted:0,updated:0,missing:0,unavailable:0,removed:0};
+  const stats={found:incoming.size,inserted:0,updated:0,missing:0,unavailable:0,removed:0,manualLocked:0};
 
   for(const [key,row] of incoming){
     const old=existing.get(key);
@@ -44,12 +44,38 @@ export function reconcileSnapshot(existingRows,incomingRows,options={}){
       stats.inserted++;
       continue;
     }
+
+    // Um anúncio que o usuário confirmou como indisponível não deve voltar a
+    // ACTIVE apenas porque ainda existe em um índice externo desatualizado.
+    if(old.manual_availability_lock){
+      result.push({
+        ...old,
+        ...row,
+        availability_status:'unavailable',
+        verification_status:'stale',
+        first_seen_at:old.first_seen_at||now,
+        unavailable_at:old.unavailable_at||old.manual_unavailable_at||now,
+        manual_availability_lock:true,
+        manual_unavailable_reason:old.manual_unavailable_reason||'confirmado_manualmente',
+        manual_unavailable_at:old.manual_unavailable_at||now
+      });
+      stats.updated++;
+      stats.manualLocked++;
+      existing.delete(key);
+      continue;
+    }
+
     result.push({...old,...row,first_seen_at:old.first_seen_at||now});
     stats.updated++;
     existing.delete(key);
   }
 
   for(const old of existing.values()){
+    if(old.manual_availability_lock){
+      result.push({...old,availability_status:'unavailable',verification_status:'stale'});
+      stats.manualLocked++;
+      continue;
+    }
     if(old.availability_status==='removed'){
       result.push(old);continue;
     }
