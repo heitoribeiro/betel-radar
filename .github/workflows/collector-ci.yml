@@ -1,0 +1,39 @@
+name: Betel Radar - validar coletor
+
+on:
+  push:
+    paths:
+      - 'collector/**'
+      - '.github/workflows/betel-sync.yml'
+      - '.github/workflows/collector-ci.yml'
+  pull_request:
+    paths:
+      - 'collector/**'
+      - '.github/workflows/betel-sync.yml'
+      - '.github/workflows/collector-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Testes do motor de coleta
+        working-directory: collector
+        run: npm test
+
+      - name: Validacao de sintaxe do backend
+        run: |
+          node --check collector/sync-engine.js
+          node --check collector/supabase-rest.js
+          node --check collector/run-sync.js
