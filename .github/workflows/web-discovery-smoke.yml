@@ -21,11 +21,11 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Validar motor
+      - name: Validar motor e parser
         working-directory: collector
         run: npm test
 
-      - name: Executar primeira descoberta via Brave Search
+      - name: Executar descoberta via Brave Search
         env:
           BETEL_WEB_DISCOVERY_ENABLED: ${{ secrets.BETEL_WEB_DISCOVERY_ENABLED }}
           BRAVE_SEARCH_API_KEY: ${{ secrets.BRAVE_SEARCH_API_KEY }}
