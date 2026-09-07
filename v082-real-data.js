@@ -1,12 +1,13 @@
-/* Betel Radar v0.8.2 — dados reais como fonte principal, build 8207 */
+/* Betel Radar v0.8.2 — dados reais como fonte principal, build 8209 */
 (function(){
-  const BUILD='8207';
+  const BUILD='8209';
   const MODE_KEY='betel_data_mode';
   const ENDPOINT_KEY='betel_sync_endpoint';
   const USER_FIELDS=['status','followUp','followUpNote','activities','generatedHistory','messageHistory','proposalStatus','quoteValue','closedValue','paidValue','paymentStatus','commercialChannel','images','coverIndex','drone','pano','photos','quality'];
   const priorByKey=new Map();
+  let decorateTimer=null;
 
-  function num(v){const n=Number(v);return Number.isFinite(n)?n:null}
+  function num(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null}
   function sourceName(v){const s=String(v||'').toLowerCase();if(s.includes('vivareal'))return 'Viva Real';if(s.includes('olx'))return 'OLX';return v||'Web'}
   function plainSource(o){return String(o.portalSource||o.source||'').toLowerCase().includes('vivareal')?'vivareal':String(o.portalSource||o.source||'').toLowerCase().includes('olx')?'olx':String(o.portalSource||o.source||'web').toLowerCase()}
   function keyOf(o){const src=plainSource(o);const ext=o.externalId||o.external_id||'';if(ext)return `${src}:${ext}`;if(o.url||o.sourceUrl)return `${src}:${o.url||o.sourceUrl}`;return `${src}:${o.id||''}`}
@@ -88,22 +89,35 @@
       @media(max-width:760px){.v082-real-source-badge{font-size:8px;padding:3px 6px;margin-left:5px}}
     `;document.head.appendChild(s)
   }
-  function decorate(){
+  function decorate(root=document){
     const ops=Array.isArray(window.opportunities)?window.opportunities.filter(o=>o?.sourceListing):[];
     if(!ops.length)return;
     const byTitle=new Map(ops.map(o=>[String(o.title||'').trim(),o]));
-    document.querySelectorAll('strong,h2,h3,h4,b').forEach(el=>{
-      if(el.closest('#v082SyncCard'))return;
+    const scope=root&&root.querySelectorAll?root:document;
+    scope.querySelectorAll('.v082-real-source-badge').forEach(b=>{
+      const titleEl=b.previousElementSibling;
+      const title=titleEl?(titleEl.textContent||'').trim():'';
+      if(!byTitle.has(title))b.remove()
+    });
+    scope.querySelectorAll('strong,h2,h3,h4,b').forEach(el=>{
+      if(el.closest('#v082SyncCard,#v082SourceDetailPanel'))return;
       const op=byTitle.get((el.textContent||'').trim());if(!op)return;
-      const parent=el.parentElement;if(!parent||parent.querySelector(':scope > .v082-real-source-badge'))return;
-      const badge=document.createElement('span');badge.className='v082-real-source-badge';badge.textContent=op.sourceLabel+(op.discoveredVia==='brave_search'?' · Brave':' · Web');badge.title=op.discoveryLabel;parent.insertBefore(badge,el.nextSibling)
+      const parent=el.parentElement;if(!parent)return;
+      const label=op.sourceLabel+(op.discoveredVia==='brave_search'?' · Brave':' · Web');
+      let badge=parent.querySelector(':scope > .v082-real-source-badge');
+      if(!badge){badge=document.createElement('span');badge.className='v082-real-source-badge';parent.insertBefore(badge,el.nextSibling)}
+      badge.textContent=label;badge.title=op.discoveryLabel
     })
+  }
+  function scheduleDecorate(delay=90){
+    clearTimeout(decorateTimer);
+    decorateTimer=setTimeout(()=>{installStyles();decorate(document)},delay)
   }
   function rerender(){
     if(typeof window.renderAll==='function'){
       try{window.renderAll()}catch(e){console.warn('Betel Radar: falha ao renderizar dados reais',e)}
-      setTimeout(()=>{try{window.renderAll()}catch{};decorate()},140)
-    }else setTimeout(decorate,120)
+      scheduleDecorate(110)
+    }else scheduleDecorate(110)
   }
   function handleSynced(e){
     const detail=e?.detail||{};if(detail.mode&&detail.mode!=='production')return;
@@ -120,7 +134,7 @@
     localStorage.setItem(MODE_KEY,'production');
     localStorage.removeItem(ENDPOINT_KEY);
     const sync=window.BetelRadarSync;
-    if(sync?.state&&sync.state.mode!=='production')sync.setMode?.('production');
+    if(sync?.state&&sync.state.mode!=='production')sync.setMode?.('production')
   }
 
   capturePrior();
@@ -128,8 +142,12 @@
   localStorage.setItem(MODE_KEY,'production');
   localStorage.removeItem(ENDPOINT_KEY);
   window.addEventListener('betel:opportunities-synced',handleSynced);
-  document.addEventListener('click',e=>{if(e.target.closest?.('[data-v082-action="sync"]'))capturePrior()},true);
-  window.addEventListener('pageshow',()=>{capturePrior();forceProduction();setTimeout(decorate,350)});
-  new MutationObserver(()=>{installStyles();decorate()}).observe(document.documentElement,{subtree:true,childList:true});
-  setTimeout(forceProduction,850);setTimeout(forceProduction,1500);setTimeout(decorate,1800);
+  window.addEventListener('betel:real-data-ready',()=>scheduleDecorate(80));
+  window.addEventListener('pageshow',()=>{capturePrior();forceProduction();scheduleDecorate(260)});
+  document.addEventListener('click',e=>{
+    if(e.target.closest?.('[data-v082-action="sync"]'))capturePrior();
+    if(e.target.closest?.('.nav-item,.bottom-nav,.mobile-bottom-nav,[data-section],[onclick*="showSection"],[onclick*="navigate"]'))scheduleDecorate(180)
+  },true);
+  setTimeout(forceProduction,650);
+  scheduleDecorate(900);
 })();
