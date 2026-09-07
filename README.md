@@ -5,7 +5,7 @@ Betel Drones — Radar de Oportunidades.
 ## Produção
 
 - Versão: v0.8.2
-- Front-end publicado: build 8208
+- Front-end publicado: build 8209
 - Hospedagem: GitHub Pages
 - URL: https://heitoribeiro.github.io/betel-radar/
 - Betel Cloud: Supabase de produção ativo
@@ -36,7 +36,9 @@ Já implementado no repositório e no Supabase:
 - build 8207 passou a forçar o uso da fonte real em PRODUÇÃO e removeu o retorno ao modo DEMO da interface operacional;
 - `radar_user_state` foi substituído pelos 14 registros reais/prováveis, todos iniciando no CRM como `Novo`;
 - camada `v082-real-data.js` adapta os anúncios reais ao formato legado da aplicação e preserva campos comerciais editados pelo usuário entre sincronizações;
-- build 8208 adiciona `v082-opportunity-detail.js`, com origem do anúncio, método de descoberta, status de verificação, primeira/última detecção, acesso ao anúncio original e checklist antes da abordagem;
+- build 8208 adicionou `v082-opportunity-detail.js`, com origem do anúncio, método de descoberta, status de verificação, primeira/última detecção, acesso ao anúncio original e checklist antes da abordagem;
+- build 8209 corrige o dimensionamento da ficha no Radar Visual/mobile, impede que o painel de origem seja injetado indevidamente na página Mapa, corrige `R$ 0` quando o preço não foi capturado e atualiza badges de origem reaproveitados pelo DOM;
+- build 8209 remove observadores globais de DOM que faziam varreduras repetidas em toda a página e reduz renderizações duplicadas, melhorando a fluidez na navegação;
 - indicadores visuais não confirmados deixam de ser apresentados como fatos e passam a ser tratados como `não verificado`;
 - configuração oficial `OLX Imóveis` permanece desativada aguardando API/feed/endpoint autorizado.
 
@@ -90,7 +92,7 @@ Nunca versionar `BRAVE_SEARCH_API_KEY`, `SUPABASE_SECRET_KEY` ou `SUPABASE_SERVI
 
 ## Próximos passos
 
-1. homologar no desktop/mobile a nova ficha de origem e verificação do build 8208;
+1. homologar no desktop/mobile a ficha de origem e a fluidez de navegação do build 8209;
 2. iniciar enriquecimento manual/assistido de anunciante e canais de contato para prospecção dos serviços de filmagem aérea;
 3. acompanhar as próximas execuções do Brave e validar deduplicação/atualizações;
 4. melhorar a priorização do Score Betel com dados reais de área, tipo de imóvel, anunciante e qualidade visual quando confirmados;
