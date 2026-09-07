@@ -1,4 +1,4 @@
-/* Betel Radar v0.8.2 — camada de sincronização build 8205 */
+/* Betel Radar v0.8.2 — camada de sincronização build 8206 */
 (function(){
   const VERSION='v0.8.2';
   const KEY_MODE='betel_data_mode';
@@ -6,6 +6,10 @@
   const KEY_LAST='betel_sync_last';
   const DEFAULT_INTERVAL_MINUTES=60;
   const PANEL_SECTIONS=['Dashboard','Configurações'];
+  const BETEL_CLOUD_URL='https://asnjlaxhbehzhisandmz.supabase.co';
+  const BETEL_CLOUD_KEY='sb_publishable_JCp12LZjTSgH7mi-X-eOvg_hILh1fb3';
+  const DEFAULT_LISTINGS_ENDPOINT=`${BETEL_CLOUD_URL}/rest/v1/source_listings?availability_status=eq.active&select=*&order=last_seen_at.desc`;
+  const DEMO_OPPORTUNITIES=Array.isArray(window.opportunities)?[...window.opportunities]:[];
 
   const state={
     mode:localStorage.getItem(KEY_MODE)||'demo',
@@ -17,10 +21,35 @@
   let rendering=false,queued=false;
 
   function fmtDate(v){if(!v)return 'Nunca';const d=new Date(v);return isNaN(d)?'Nunca':d.toLocaleString('pt-BR')}
-  function normalizeListing(x){return {
-    id:x.id||`${x.source||'source'}:${x.external_id||x.externalId||crypto.randomUUID()}`,
-    source:x.source||'olx',externalId:x.external_id||x.externalId||'',title:x.title||'Imóvel sem título',description:x.description||'',advertiser:x.advertiser||'',city:x.city||'',state:x.state||'',neighborhood:x.neighborhood||'',price:x.price??null,propertyType:x.property_type||x.propertyType||'',listingType:x.listing_type||x.listingType||'',bedrooms:x.bedrooms??null,bathrooms:x.bathrooms??null,parkingSpaces:x.parking_spaces??x.parkingSpaces??null,areaM2:x.area_m2??x.areaM2??null,latitude:x.latitude??null,longitude:x.longitude??null,url:x.source_url||x.url||'',imageUrls:Array.isArray(x.image_urls)?x.image_urls:(Array.isArray(x.imageUrls)?x.imageUrls:[]),firstSeen:x.first_seen_at||x.firstSeen||'',lastSeen:x.last_seen_at||x.lastSeen||'',availabilityStatus:x.availability_status||x.availabilityStatus||'active',status:'Novo',sourceListing:true
-  }}
+  function activeEndpoint(){return state.endpoint||DEFAULT_LISTINGS_ENDPOINT}
+  function normalizeListing(x){
+    const verificationStatus=x.verification_status||x.verificationStatus||'verified';
+    return {
+      id:x.id||`${x.source||'source'}:${x.external_id||x.externalId||crypto.randomUUID()}`,
+      source:x.source||'olx',
+      externalId:x.external_id||x.externalId||'',
+      title:x.title||'Imóvel sem título',
+      description:x.description||'',
+      advertiser:x.advertiser||'',
+      advertiserType:x.advertiser_type||x.advertiserType||'',
+      city:x.city||'',state:x.state||'',neighborhood:x.neighborhood||'',
+      price:x.price??null,
+      propertyType:x.property_type||x.propertyType||'',
+      listingType:x.listing_type||x.listingType||'',
+      bedrooms:x.bedrooms??null,bathrooms:x.bathrooms??null,
+      parkingSpaces:x.parking_spaces??x.parkingSpaces??null,
+      areaM2:x.area_m2??x.areaM2??null,
+      latitude:x.latitude??null,longitude:x.longitude??null,
+      url:x.source_url||x.url||'',
+      imageUrls:Array.isArray(x.image_urls)?x.image_urls:(Array.isArray(x.imageUrls)?x.imageUrls:[]),
+      firstSeen:x.first_seen_at||x.firstSeen||'',lastSeen:x.last_seen_at||x.lastSeen||'',
+      availabilityStatus:x.availability_status||x.availabilityStatus||'active',
+      discoveredVia:x.discovered_via||x.discoveredVia||'',
+      verificationStatus,
+      status:verificationStatus==='discovered'?'Descoberto':'Novo',
+      sourceListing:true
+    }
+  }
 
   function installStyles(){
     if(document.getElementById('v082SyncStyles'))return;
@@ -43,7 +72,7 @@
     `;document.head.appendChild(s)
   }
 
-  function sourceStatus(){if(state.mode==='demo')return ['DEMO','warn'];if(!state.endpoint)return ['Aguardando fonte','warn'];if(state.status==='syncing')return ['Sincronizando','warn'];if(state.status==='error')return ['Erro','err'];if(state.status==='success')return ['Sincronizado','ok'];return ['Produção','ok']}
+  function sourceStatus(){if(state.mode==='demo')return ['DEMO','warn'];if(state.status==='syncing')return ['Sincronizando','warn'];if(state.status==='error')return ['Erro','err'];if(state.status==='success')return ['Dados reais','ok'];return ['PRODUÇÃO','ok']}
   function labels(){return ['Dashboard','Radar','Radar Visual','Mapa','Contatos','CRM','Agenda','Financeiro','Mensagens IA','Configurações']}
   function currentSection(){
     const active=document.querySelector('.nav-item.active,[aria-current="page"]');
@@ -102,31 +131,73 @@
       card.className='v082-sync-card '+(section==='Dashboard'?'v082-dashboard':'v082-config')+(state.mobileOpen?' v082-open':'');
       placeCard(card,target);
       const [label,klass]=sourceStatus();const context=section==='Dashboard'?'Resumo da coleta':'Gerenciamento da coleta';
-      card.innerHTML=`<div class="v082-sync-head"><div class="v082-sync-heading"><div class="v082-sync-title">${context}</div><div class="v082-sync-sub">Betel Radar ${VERSION} · atualização prevista a cada ${state.intervalMinutes} min</div></div><div class="v082-head-actions"><span class="v082-badge ${klass}">${label}</span><button type="button" class="v082-mobile-toggle" id="v082MobileToggle" aria-expanded="${state.mobileOpen?'true':'false'}">${state.mobileOpen?'Fechar':'Gerenciar'}</button></div></div><div class="v082-body"><div class="v082-grid"><div class="v082-kpi"><small>Modo</small><b>${state.mode==='demo'?'DEMO':'PRODUÇÃO'}</b></div><div class="v082-kpi"><small>Ativos</small><b>${state.active}</b></div><div class="v082-kpi"><small>Indisponíveis</small><b>${state.unavailable}</b></div><div class="v082-kpi"><small>Última sincronização</small><b class="v082-date">${fmtDate(state.lastSync)}</b></div></div><div class="v082-actions"><button type="button" class="v082-btn primary" data-v082-action="sync">Sincronizar agora</button><button type="button" class="v082-btn" data-v082-action="mode">${state.mode==='demo'?'Ativar PRODUÇÃO':'Voltar para DEMO'}</button><button type="button" class="v082-btn" data-v082-action="endpoint">Configurar fonte</button></div><details class="v082-details"><summary>Como funciona a disponibilidade</summary><div class="v082-note">A coleta real será ativada quando houver endpoint autorizado da fonte. O front-end não executa crawling da OLX. Ausências consecutivas são tratadas pelo backend como <b>missing</b>, depois <b>unavailable</b> e, conforme a política, <b>removed</b>.</div></details></div>`;
+      const sourceText=state.mode==='demo'?'dados de demonstração':'Betel Cloud · OLX/Viva Real descobertos na web';
+      card.innerHTML=`<div class="v082-sync-head"><div class="v082-sync-heading"><div class="v082-sync-title">${context}</div><div class="v082-sync-sub">Betel Radar ${VERSION} · ${sourceText}</div></div><div class="v082-head-actions"><span class="v082-badge ${klass}">${label}</span><button type="button" class="v082-mobile-toggle" id="v082MobileToggle" aria-expanded="${state.mobileOpen?'true':'false'}">${state.mobileOpen?'Fechar':'Gerenciar'}</button></div></div><div class="v082-body"><div class="v082-grid"><div class="v082-kpi"><small>Modo</small><b>${state.mode==='demo'?'DEMO':'PRODUÇÃO'}</b></div><div class="v082-kpi"><small>Ativos</small><b>${state.active}</b></div><div class="v082-kpi"><small>Indisponíveis</small><b>${state.unavailable}</b></div><div class="v082-kpi"><small>Última sincronização</small><b class="v082-date">${fmtDate(state.lastSync)}</b></div></div><div class="v082-actions"><button type="button" class="v082-btn primary" data-v082-action="sync">Sincronizar agora</button><button type="button" class="v082-btn" data-v082-action="mode">${state.mode==='demo'?'Ativar PRODUÇÃO':'Voltar para DEMO'}</button><button type="button" class="v082-btn" data-v082-action="endpoint">Configurar fonte</button></div><details class="v082-details"><summary>Como funciona a disponibilidade</summary><div class="v082-note">Enquanto a API oficial da OLX não estiver conectada, anúncios encontrados por índice web entram como <b>Descoberto</b>. Isso indica oportunidade provável, não confirmação oficial de disponibilidade. A automação Brave Search será responsável por renovar esses registros no Betel Cloud.</div></details></div>`;
     }finally{rendering=false}
   }
 
-  async function syncNow(){
-    if(state.mode==='demo'){state.status='idle';state.error='';render();return}
-    if(!state.endpoint){state.status='error';state.error='Endpoint não configurado';render();return}
-    try{state.status='syncing';state.error='';render();const r=await fetch(state.endpoint,{headers:{Accept:'application/json'},cache:'no-store'});if(!r.ok)throw new Error(`HTTP ${r.status}`);const payload=await r.json();const rows=Array.isArray(payload)?payload:(Array.isArray(payload.listings)?payload.listings:[]);const normalized=rows.map(normalizeListing);const active=normalized.filter(x=>x.availabilityStatus==='active');state.active=active.length;state.unavailable=normalized.filter(x=>['unavailable','removed','missing'].includes(x.availabilityStatus)).length;state.lastSync=new Date().toISOString();localStorage.setItem(KEY_LAST,state.lastSync);state.status='success';window.opportunities=active;window.dispatchEvent(new CustomEvent('betel:opportunities-synced',{detail:{count:active.length,all:normalized}}))}catch(e){state.status='error';state.error=String(e?.message||e)}render()
+  async function fetchRows(){
+    const endpoint=activeEndpoint();
+    const headers={Accept:'application/json'};
+    if(endpoint.startsWith(BETEL_CLOUD_URL)){
+      headers.apikey=BETEL_CLOUD_KEY;
+      headers.Authorization=`Bearer ${BETEL_CLOUD_KEY}`;
+    }
+    const r=await fetch(endpoint,{headers,cache:'no-store'});
+    const text=await r.text();
+    if(!r.ok)throw new Error(`HTTP ${r.status} ${text.slice(0,180)}`);
+    const payload=text?JSON.parse(text):[];
+    return Array.isArray(payload)?payload:(Array.isArray(payload.listings)?payload.listings:[])
   }
 
-  function setEndpoint(){const v=prompt('Endpoint autorizado de sincronização:',state.endpoint||'');if(v!==null){state.endpoint=v.trim();localStorage.setItem(KEY_ENDPOINT,state.endpoint);render()}}
-  function toggleMode(){state.mode=state.mode==='demo'?'production':'demo';localStorage.setItem(KEY_MODE,state.mode);render()}
+  async function syncNow(){
+    if(state.mode==='demo'){
+      state.status='idle';state.error='';state.active=DEMO_OPPORTUNITIES.length;state.unavailable=0;
+      window.opportunities=[...DEMO_OPPORTUNITIES];
+      window.dispatchEvent(new CustomEvent('betel:opportunities-synced',{detail:{count:DEMO_OPPORTUNITIES.length,all:DEMO_OPPORTUNITIES,mode:'demo'}}));
+      render();return
+    }
+    try{
+      state.status='syncing';state.error='';render();
+      const rows=await fetchRows();
+      const normalized=rows.map(normalizeListing);
+      const active=normalized.filter(x=>x.availabilityStatus==='active');
+      state.active=active.length;
+      state.unavailable=normalized.filter(x=>['unavailable','removed','missing'].includes(x.availabilityStatus)).length;
+      state.lastSync=new Date().toISOString();localStorage.setItem(KEY_LAST,state.lastSync);state.status='success';
+      window.opportunities=active;
+      window.dispatchEvent(new CustomEvent('betel:opportunities-synced',{detail:{count:active.length,all:normalized,mode:'production'}}));
+    }catch(e){state.status='error';state.error=String(e?.message||e)}
+    render()
+  }
+
+  function setEndpoint(){
+    const current=state.endpoint||DEFAULT_LISTINGS_ENDPOINT;
+    const v=prompt('Endpoint de leitura das oportunidades. Deixe vazio para usar o Betel Cloud padrão:',current);
+    if(v!==null){
+      const next=v.trim();
+      state.endpoint=next===DEFAULT_LISTINGS_ENDPOINT?'':next;
+      if(state.endpoint)localStorage.setItem(KEY_ENDPOINT,state.endpoint);else localStorage.removeItem(KEY_ENDPOINT);
+      render()
+    }
+  }
+  function toggleMode(){
+    state.mode=state.mode==='demo'?'production':'demo';localStorage.setItem(KEY_MODE,state.mode);
+    if(state.mode==='production')syncNow();else syncNow()
+  }
   function delegatedAction(e){
     const toggle=e.target.closest?.('#v082MobileToggle');if(toggle){e.preventDefault();e.stopPropagation();state.mobileOpen=!state.mobileOpen;render();return}
     const action=e.target.closest?.('[data-v082-action]');if(!action)return;
     e.preventDefault();e.stopPropagation();const a=action.dataset.v082Action;if(a==='sync')syncNow();else if(a==='mode')toggleMode();else if(a==='endpoint')setEndpoint()
   }
 
-  function expose(){window.BetelRadarSync={version:VERSION,state,normalizeListing,syncNow,setEndpoint(v){state.endpoint=String(v||'').trim();localStorage.setItem(KEY_ENDPOINT,state.endpoint);render()},setMode(v){state.mode=v==='production'?'production':'demo';localStorage.setItem(KEY_MODE,state.mode);render()}}}
+  function expose(){window.BetelRadarSync={version:VERSION,state,normalizeListing,syncNow,setEndpoint(v){state.endpoint=String(v||'').trim();if(state.endpoint)localStorage.setItem(KEY_ENDPOINT,state.endpoint);else localStorage.removeItem(KEY_ENDPOINT);render()},setMode(v){state.mode=v==='production'?'production':'demo';localStorage.setItem(KEY_MODE,state.mode);syncNow()}}}
   function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;render()})}
   document.addEventListener('click',delegatedAction,true);
   document.addEventListener('click',()=>setTimeout(schedule,40),true);
-  window.addEventListener('pageshow',()=>setTimeout(()=>{expose();render()},150));
+  window.addEventListener('pageshow',()=>setTimeout(()=>{expose();render();if(state.mode==='production')syncNow();else{state.active=DEMO_OPPORTUNITIES.length;render()}},150));
   window.addEventListener('resize',()=>setTimeout(schedule,80),{passive:true});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(schedule,100)});
   new MutationObserver(ms=>{if(ms.every(m=>m.target?.closest?.('#v082SyncCard')))return;schedule()}).observe(document.documentElement,{subtree:true,childList:true});
-  setTimeout(()=>{expose();render()},700);
+  setTimeout(()=>{expose();if(state.mode==='production')syncNow();else{state.active=DEMO_OPPORTUNITIES.length;render()}},700);
 })();
