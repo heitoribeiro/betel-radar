@@ -50,6 +50,11 @@ export async function listActiveListings(){
   return await request(`/rest/v1/source_listings?${params}`);
 }
 
+export async function listVerifiedLocationReferences(){
+  const params=new URLSearchParams({verified:'eq.true',select:'*',order:'city.asc,name.asc'});
+  return await request(`/rest/v1/location_references?${params}`);
+}
+
 export async function createSyncRun(source,metadata={}){
   const rows=await request('/rest/v1/sync_runs',{method:'POST',prefer:'return=representation',body:[{source,status:'running',metadata}]});
   return rows?.[0]||null;
