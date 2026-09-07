@@ -22,6 +22,15 @@ test('primeira ausencia vira missing e segunda unavailable',()=>{
   assert.equal(second.unavailable_at,'2026-09-07T01:00:00.000Z');
 });
 
+test('descoberta web pode permanecer active até o limite de ausências',()=>{
+  const base={source:'olx',external_id:'1',title:'Imóvel A',availability_status:'active',consecutive_misses:0,first_seen_at:'2026-09-06T00:00:00.000Z',last_seen_at:'2026-09-06T23:00:00.000Z'};
+  const first=reconcileSnapshot([base],[],{now:'2026-09-07T00:00:00.000Z',unavailableAfterMisses:6,keepActiveUntilUnavailable:true}).rows[0];
+  assert.equal(first.availability_status,'active');
+  assert.equal(first.consecutive_misses,1);
+  const sixth=reconcileSnapshot([{...first,consecutive_misses:5}],[],{now:'2026-09-08T16:00:00.000Z',unavailableAfterMisses:6,keepActiveUntilUnavailable:true}).rows[0];
+  assert.equal(sixth.availability_status,'unavailable');
+});
+
 test('anuncio que reaparece volta a active e zera ausencias',()=>{
   const old={source:'olx',external_id:'1',title:'Antigo',availability_status:'unavailable',consecutive_misses:3,first_seen_at:'2026-09-01T00:00:00.000Z',last_seen_at:'2026-09-06T00:00:00.000Z',missing_since:'2026-09-06T01:00:00.000Z',unavailable_at:'2026-09-06T02:00:00.000Z'};
   const {rows}=reconcileSnapshot([old],[{source:'olx',external_id:'1',title:'Atualizado'}],{now:'2026-09-07T02:00:00.000Z'});
