@@ -1,13 +1,24 @@
-const REQUIRED=['SUPABASE_URL','SUPABASE_SERVICE_ROLE_KEY'];
-
 function env(name,required=true){
   const value=(process.env[name]||'').trim();
   if(required&&!value)throw new Error(`Variável obrigatória ausente: ${name}`);
   return value;
 }
 
+function supabaseSecret(){
+  const modern=env('SUPABASE_SECRET_KEY',false);
+  const legacy=env('SUPABASE_SERVICE_ROLE_KEY',false);
+  const key=modern||legacy;
+  if(!key)throw new Error('Variável obrigatória ausente: SUPABASE_SECRET_KEY (ou SUPABASE_SERVICE_ROLE_KEY legado)');
+  return key;
+}
+
+function validateEnv(){
+  env('SUPABASE_URL');
+  supabaseSecret();
+}
+
 function baseHeaders(){
-  const key=env('SUPABASE_SERVICE_ROLE_KEY');
+  const key=supabaseSecret();
   return {
     apikey:key,
     Authorization:`Bearer ${key}`,
@@ -16,7 +27,7 @@ function baseHeaders(){
 }
 
 async function request(path,{method='GET',body,prefer}={}){
-  for(const name of REQUIRED)env(name);
+  validateEnv();
   const url=`${env('SUPABASE_URL').replace(/\/$/,'')}${path}`;
   const headers=baseHeaders();
   if(prefer)headers.Prefer=prefer;
