@@ -1,0 +1,13 @@
+{
+  "name": "betel-radar-collector",
+  "private": true,
+  "version": "0.8.2",
+  "type": "module",
+  "scripts": {
+    "test": "node --test *.test.js",
+    "sync": "node run-sync.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
