@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'collector/**'
+      - 'v080.js'
       - 'v082-sync.js'
       - 'v082-real-data.js'
       - 'v082-opportunity-detail.js'
@@ -16,6 +17,7 @@ on:
   pull_request:
     paths:
       - 'collector/**'
+      - 'v080.js'
       - 'v082-sync.js'
       - 'v082-real-data.js'
       - 'v082-opportunity-detail.js'
@@ -54,6 +56,7 @@ jobs:
           node --check collector/run-discovery.js
           node --check collector/geocode-listings.js
           node --check collector/adapters/brave-search.js
+          node --check v080.js
           node --check v082-sync.js
           node --check v082-real-data.js
           node --check v082-opportunity-detail.js
