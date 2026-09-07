@@ -27,7 +27,3 @@ with check ((select auth.uid()) = user_id);
 drop policy if exists radar_state_delete_own on public.radar_user_state;
 create policy radar_state_delete_own on public.radar_user_state
 for delete using ((select auth.uid()) = user_id);
-
-insert into public.source_configs (source,name,enabled,mode,interval_minutes,params)
-select 'olx','OLX Imóveis',false,'authorized_api',60,'{"status":"awaiting_authorized_source","scope":"real_estate"}'::jsonb
-where not exists (select 1 from public.source_configs where source='olx');
