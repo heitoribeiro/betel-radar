@@ -1,10 +1,11 @@
-/* Betel Radar v0.8.2 — camada de sincronização build 8209 */
+/* Betel Radar v0.8.2 — camada de sincronização build 8210 */
 (function(){
   const VERSION='v0.8.2';
   const KEY_MODE='betel_data_mode';
   const KEY_ENDPOINT='betel_sync_endpoint';
   const KEY_LAST='betel_sync_last';
   const DEFAULT_INTERVAL_MINUTES=60;
+  const AUTO_REFRESH_MS=10*60*1000;
   const PANEL_SECTIONS=['Dashboard','Configurações'];
   const BETEL_CLOUD_URL='https://asnjlaxhbehzhisandmz.supabase.co';
   const BETEL_CLOUD_KEY='sb_publishable_JCp12LZjTSgH7mi-X-eOvg_hILh1fb3';
@@ -18,7 +19,7 @@
     lastSync:localStorage.getItem(KEY_LAST)||'',
     status:'idle',active:0,unavailable:0,error:'',mobileOpen:false
   };
-  let rendering=false,queued=false,booted=false;
+  let rendering=false,queued=false,booted=false,lastFetchAt=0,lastDataSignature='';
 
   function fmtDate(v){if(!v)return 'Nunca';const d=new Date(v);return isNaN(d)?'Nunca':d.toLocaleString('pt-BR')}
   function activeEndpoint(){return state.endpoint||DEFAULT_LISTINGS_ENDPOINT}
@@ -32,7 +33,7 @@
       description:x.description||'',
       advertiser:x.advertiser||'',
       advertiserType:x.advertiser_type||x.advertiserType||'',
-      city:x.city||'',state:x.state||'',neighborhood:x.neighborhood||'',
+      city:x.city||'',state:x.state||'',neighborhood:x.neighborhood||'',addressText:x.address_text||x.addressText||'',
       price:x.price??null,
       propertyType:x.property_type||x.propertyType||'',
       listingType:x.listing_type||x.listingType||'',
@@ -40,6 +41,15 @@
       parkingSpaces:x.parking_spaces??x.parkingSpaces??null,
       areaM2:x.area_m2??x.areaM2??null,
       latitude:x.latitude??null,longitude:x.longitude??null,
+      geocodeStatus:x.geocode_status||x.geocodeStatus||'',
+      geocodePrecision:x.geocode_precision||x.geocodePrecision||'',
+      geocodeSource:x.geocode_source||x.geocodeSource||'',
+      geocodeQuery:x.geocode_query||x.geocodeQuery||'',
+      geocodeLabel:x.geocode_label||x.geocodeLabel||'',
+      geocodeConfidence:x.geocode_confidence??x.geocodeConfidence??null,
+      geocodedAt:x.geocoded_at||x.geocodedAt||'',
+      locationSignature:x.location_signature||x.locationSignature||'',
+      updatedAt:x.updated_at||x.updatedAt||'',
       url:x.source_url||x.url||'',
       imageUrls:Array.isArray(x.image_urls)?x.image_urls:(Array.isArray(x.imageUrls)?x.imageUrls:[]),
       firstSeen:x.first_seen_at||x.firstSeen||'',lastSeen:x.last_seen_at||x.lastSeen||'',
@@ -49,6 +59,12 @@
       status:verificationStatus==='discovered'?'Descoberto':'Novo',
       sourceListing:true
     }
+  }
+  function signatureFor(rows){
+    return rows.map(x=>[
+      x.source,x.externalId,x.updatedAt,x.lastSeen,x.title,x.price,x.areaM2,x.neighborhood,x.addressText,
+      x.latitude,x.longitude,x.geocodePrecision,x.geocodeStatus,x.verificationStatus
+    ].join('|')).sort().join('||')
   }
 
   function installStyles(){
@@ -150,7 +166,8 @@
     return Array.isArray(payload)?payload:(Array.isArray(payload.listings)?payload.listings:[])
   }
 
-  async function syncNow(){
+  async function syncNow(options={}){
+    const silent=!!options.silent;
     if(state.mode==='demo'){
       state.status='idle';state.error='';state.active=DEMO_OPPORTUNITIES.length;state.unavailable=0;
       window.opportunities=[...DEMO_OPPORTUNITIES];
@@ -158,17 +175,22 @@
       render();return
     }
     try{
-      state.status='syncing';state.error='';render();
-      const rows=await fetchRows();
+      if(!silent){state.status='syncing';state.error='';render()}
+      const rows=await fetchRows();lastFetchAt=Date.now();
       const normalized=rows.map(normalizeListing);
       const active=normalized.filter(x=>x.availabilityStatus==='active');
+      const signature=signatureFor(normalized);
+      const changed=signature!==lastDataSignature;
       state.active=active.length;
       state.unavailable=normalized.filter(x=>['unavailable','removed','missing'].includes(x.availabilityStatus)).length;
-      state.lastSync=new Date().toISOString();localStorage.setItem(KEY_LAST,state.lastSync);state.status='success';
-      window.opportunities=active;
-      window.dispatchEvent(new CustomEvent('betel:opportunities-synced',{detail:{count:active.length,all:normalized,mode:'production'}}));
-    }catch(e){state.status='error';state.error=String(e?.message||e)}
-    render()
+      state.lastSync=new Date().toISOString();localStorage.setItem(KEY_LAST,state.lastSync);state.status='success';state.error='';
+      if(changed||!lastDataSignature){
+        lastDataSignature=signature;
+        window.opportunities=active;
+        window.dispatchEvent(new CustomEvent('betel:opportunities-synced',{detail:{count:active.length,all:normalized,mode:'production'}}));
+      }
+      if(!silent)render()
+    }catch(e){state.status='error';state.error=String(e?.message||e);if(!silent)render()}
   }
 
   function setEndpoint(){
@@ -178,23 +200,27 @@
       const next=v.trim();
       state.endpoint=next===DEFAULT_LISTINGS_ENDPOINT?'':next;
       if(state.endpoint)localStorage.setItem(KEY_ENDPOINT,state.endpoint);else localStorage.removeItem(KEY_ENDPOINT);
-      render()
+      lastDataSignature='';render()
     }
   }
-  function toggleMode(){state.mode=state.mode==='demo'?'production':'demo';localStorage.setItem(KEY_MODE,state.mode);syncNow()}
+  function toggleMode(){state.mode=state.mode==='demo'?'production':'demo';localStorage.setItem(KEY_MODE,state.mode);lastDataSignature='';syncNow()}
   function delegatedAction(e){
     const toggle=e.target.closest?.('#v082MobileToggle');if(toggle){e.preventDefault();e.stopPropagation();state.mobileOpen=!state.mobileOpen;render();return}
     const action=e.target.closest?.('[data-v082-action]');if(!action)return;
     e.preventDefault();e.stopPropagation();const a=action.dataset.v082Action;if(a==='sync')syncNow();else if(a==='mode')toggleMode();else if(a==='endpoint')setEndpoint()
   }
 
-  function expose(){window.BetelRadarSync={version:VERSION,state,normalizeListing,syncNow,setEndpoint(v){state.endpoint=String(v||'').trim();if(state.endpoint)localStorage.setItem(KEY_ENDPOINT,state.endpoint);else localStorage.removeItem(KEY_ENDPOINT);render()},setMode(v){state.mode=v==='production'?'production':'demo';localStorage.setItem(KEY_MODE,state.mode);syncNow()}}}
+  function expose(){window.BetelRadarSync={version:VERSION,state,normalizeListing,syncNow,setEndpoint(v){state.endpoint=String(v||'').trim();if(state.endpoint)localStorage.setItem(KEY_ENDPOINT,state.endpoint);else localStorage.removeItem(KEY_ENDPOINT);lastDataSignature='';render()},setMode(v){state.mode=v==='production'?'production':'demo';localStorage.setItem(KEY_MODE,state.mode);lastDataSignature='';syncNow()}}}
   function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;render()})}
   function boot(){
     expose();
     if(booted){render();return}
     booted=true;
     if(state.mode==='production')syncNow();else{state.active=DEMO_OPPORTUNITIES.length;render()}
+  }
+  function maybeRefresh(){
+    if(document.hidden||state.mode!=='production')return;
+    if(!lastFetchAt||Date.now()-lastFetchAt>=AUTO_REFRESH_MS)syncNow({silent:true})
   }
 
   document.addEventListener('click',delegatedAction,true);
@@ -203,6 +229,7 @@
   },true);
   window.addEventListener('pageshow',()=>setTimeout(boot,130));
   window.addEventListener('resize',()=>setTimeout(schedule,100),{passive:true});
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(schedule,120)});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){setTimeout(schedule,120);setTimeout(maybeRefresh,180)}});
+  setInterval(maybeRefresh,60*1000);
   setTimeout(()=>{if(!booted)boot()},650);
 })();
