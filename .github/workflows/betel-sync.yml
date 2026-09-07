@@ -1,0 +1,47 @@
+name: Betel Radar - sincronizacao autorizada
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: betel-radar-authorized-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validar motor de reconciliacao
+        working-directory: collector
+        run: npm test
+
+      - name: Sincronizar fonte autorizada
+        env:
+          BETEL_SYNC_ENABLED: ${{ secrets.BETEL_SYNC_ENABLED }}
+          BETEL_SOURCE: ${{ secrets.BETEL_SOURCE }}
+          BETEL_SOURCE_ENDPOINT: ${{ secrets.BETEL_SOURCE_ENDPOINT }}
+          BETEL_SOURCE_TOKEN: ${{ secrets.BETEL_SOURCE_TOKEN }}
+          BETEL_UNAVAILABLE_AFTER_MISSES: ${{ secrets.BETEL_UNAVAILABLE_AFTER_MISSES }}
+          BETEL_REMOVE_AFTER_HOURS: ${{ secrets.BETEL_REMOVE_AFTER_HOURS }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ "$BETEL_SYNC_ENABLED" != "true" ]; then
+            echo "Sincronizacao real ainda desativada. Configure os secrets e BETEL_SYNC_ENABLED=true quando a fonte autorizada estiver pronta."
+            exit 0
+          fi
+          node collector/run-sync.js
