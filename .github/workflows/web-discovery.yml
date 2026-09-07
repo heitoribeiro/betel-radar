@@ -15,7 +15,7 @@ concurrency:
 jobs:
   discovery:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,3 +44,11 @@ jobs:
             exit 0
           fi
           node collector/run-discovery.js
+
+      - name: Atualizar georreferenciamento assistido
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BETEL_GEOCODE_MAX_ROWS: '50'
+        run: node collector/geocode-listings.js
