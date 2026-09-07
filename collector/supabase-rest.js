@@ -27,9 +27,11 @@ async function request(path,{method='GET',body,prefer}={}){
   try{return JSON.parse(text)}catch{return text}
 }
 
-export async function listListings(source){
-  const q=encodeURIComponent(source);
-  return await request(`/rest/v1/source_listings?source=eq.${q}&select=*`);
+export async function listListings(source,{discoveredVia,verificationStatus}={}){
+  const params=new URLSearchParams({source:`eq.${source}`,select:'*'});
+  if(discoveredVia)params.set('discovered_via',`eq.${discoveredVia}`);
+  if(verificationStatus)params.set('verification_status',`eq.${verificationStatus}`);
+  return await request(`/rest/v1/source_listings?${params}`);
 }
 
 export async function createSyncRun(source,metadata={}){
@@ -43,7 +45,7 @@ export async function finishSyncRun(id,patch){
 }
 
 const DB_FIELDS=new Set([
-  'source','external_id','source_url','title','description','advertiser','advertiser_type','listing_type','property_type','price','condominium_fee','iptu','city','state','neighborhood','address_text','latitude','longitude','bedrooms','bathrooms','parking_spaces','area_m2','image_urls','raw_payload','availability_status','first_seen_at','last_seen_at','missing_since','unavailable_at','removed_at','consecutive_misses','content_hash'
+  'source','external_id','source_url','title','description','advertiser','advertiser_type','listing_type','property_type','price','condominium_fee','iptu','city','state','neighborhood','address_text','latitude','longitude','bedrooms','bathrooms','parking_spaces','area_m2','image_urls','raw_payload','availability_status','first_seen_at','last_seen_at','missing_since','unavailable_at','removed_at','consecutive_misses','content_hash','discovered_via','verification_status','discovery_query','discovered_at','last_verified_at','source_rank'
 ]);
 
 export function toDbRow(row){
