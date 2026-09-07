@@ -14,6 +14,8 @@ on:
       - 'v082-prospecting.js'
       - 'v082-detail-layout-fix.js'
       - 'v082-detail-data-guard.js'
+      - 'v082-ui-stability.js'
+      - 'v082-dashboard-crm-authority.js'
       - 'index.html'
       - 'service-worker.js'
       - '.github/workflows/betel-sync.yml'
@@ -33,6 +35,8 @@ on:
       - 'v082-prospecting.js'
       - 'v082-detail-layout-fix.js'
       - 'v082-detail-data-guard.js'
+      - 'v082-ui-stability.js'
+      - 'v082-dashboard-crm-authority.js'
       - 'index.html'
       - 'service-worker.js'
       - '.github/workflows/betel-sync.yml'
@@ -78,3 +82,5 @@ jobs:
           node --check v082-prospecting.js
           node --check v082-detail-layout-fix.js
           node --check v082-detail-data-guard.js
+          node --check v082-ui-stability.js
+          node --check v082-dashboard-crm-authority.js
