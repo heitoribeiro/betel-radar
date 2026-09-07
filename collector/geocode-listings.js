@@ -1,5 +1,5 @@
 import {createHash} from 'node:crypto';
-import {listActiveListings,upsertListings} from './supabase-rest.js';
+import {listActiveListings,patchListing} from './supabase-rest.js';
 
 const NOMINATIM_URL='https://nominatim.openstreetmap.org/search';
 const USER_AGENT='BetelRadar/0.8.2 (+https://github.com/heitoribeiro/betel-radar)';
@@ -18,7 +18,7 @@ function signature(row){
   return createHash('sha256').update(parts.join('|')).digest('hex').slice(0,24)
 }
 function hasStreetNumber(text=''){
-  return /(?:rua|avenida|av\.?|travessa|alameda|estrada|rodovia)\b[^,;]{2,70}\b\d{1,6}\b/i.test(text)
+  return /(?:rua|avenida|av\.?|travessa|alameda|estrada|rodovia|ba-\d{3}|br-\d{3})\b[^,;]{0,70}\b\d{1,6}\b/i.test(text)
 }
 function candidates(row){
   const state=row.state||'BA';const city=row.city||'';const neighborhood=row.neighborhood||'';const address=row.address_text||'';
@@ -65,37 +65,36 @@ async function resolveRow(row){
 
   const options=candidates(row);
   if(!options.length){
-    return {action:'update',row:{source:row.source,external_id:row.external_id,geocode_status:'unresolved',geocode_source:'nominatim',geocode_query:null,geocode_label:null,geocode_confidence:null,geocode_precision:null,geocoded_at:now.toISOString(),location_signature:sig}}
+    return {action:'update',patch:{geocode_status:'unresolved',geocode_source:'nominatim',geocode_query:null,geocode_label:null,geocode_confidence:null,geocode_precision:null,geocoded_at:now.toISOString(),location_signature:sig}}
   }
   for(const option of options){
     const result=await requestNominatim(option.query);
     if(!isAcceptable(result,row))continue;
     const lat=Number(result.lat),lng=Number(result.lon);if(!Number.isFinite(lat)||!Number.isFinite(lng))continue;
-    return {action:'update',row:{
-      source:row.source,external_id:row.external_id,
+    return {action:'update',patch:{
       latitude:lat,longitude:lng,
       geocode_status:'resolved',geocode_precision:option.precision,geocode_source:'nominatim',geocode_query:option.query,
       geocode_label:result.display_name||option.query,geocode_confidence:Number.isFinite(Number(result.importance))?Number(result.importance):null,
       geocoded_at:now.toISOString(),location_signature:sig
     }}
   }
-  return {action:'update',row:{source:row.source,external_id:row.external_id,geocode_status:'unresolved',geocode_source:'nominatim',geocode_query:options[0]?.query||null,geocode_label:null,geocode_confidence:null,geocode_precision:null,geocoded_at:now.toISOString(),location_signature:sig}}
+  return {action:'update',patch:{latitude:null,longitude:null,geocode_status:'unresolved',geocode_source:'nominatim',geocode_query:options[0]?.query||null,geocode_label:null,geocode_confidence:null,geocode_precision:null,geocoded_at:now.toISOString(),location_signature:sig}}
 }
 
 async function main(){
   const rows=await listActiveListings();const max=Math.max(1,Number(env('BETEL_GEOCODE_MAX_ROWS','50'))||50);
-  const updates=[];const stats={active:rows.length,checked:0,resolved:0,unresolved:0,skipped:0,errors:0};
+  const stats={active:rows.length,checked:0,resolved:0,unresolved:0,skipped:0,errors:0,updated:0};
   for(const row of rows.slice(0,max)){
     stats.checked++;
     try{
       const result=await resolveRow(row);
       if(result.action==='skip'){stats.skipped++;continue}
-      updates.push(result.row);
-      if(result.row.geocode_status==='resolved')stats.resolved++;else stats.unresolved++;
+      await patchListing(row.source,row.external_id,result.patch);
+      stats.updated++;
+      if(result.patch.geocode_status==='resolved')stats.resolved++;else stats.unresolved++;
     }catch(error){stats.errors++;console.error(`Geocode ${row.source}:${row.external_id}:`,String(error?.message||error))}
   }
-  if(updates.length)await upsertListings(updates,{chunkSize:50});
-  console.log(JSON.stringify({ok:stats.errors===0,provider:'nominatim',updates:updates.length,cache_queries:queryCache.size,stats},null,2));
+  console.log(JSON.stringify({ok:stats.errors===0,provider:'nominatim',cache_queries:queryCache.size,stats},null,2));
   if(stats.errors&&stats.resolved===0&&stats.unresolved===0)process.exitCode=1;
 }
 
