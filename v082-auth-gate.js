@@ -1,6 +1,6 @@
-/* Betel Radar v0.8.2 — autenticação unificada build 8228 */
+/* Betel Radar v0.8.2 — autenticação unificada build 8229 */
 (function(){
-  const BUILD='8228';
+  const BUILD='8229';
   const SUPABASE_URL='https://asnjlaxhbehzhisandmz.supabase.co';
   const PROJECT_REF='asnjlaxhbehzhisandmz';
   const PUBLISHABLE_KEY='sb_publishable_JCp12LZjTSgH7mi-X-eOvg_hILh1fb3';
@@ -103,10 +103,16 @@
   function ensureGate(){
     installStyles();
     if(gate&&gate.isConnected)return gate;
-    gate=document.createElement('div');gate.className='betel-auth-gate';gate.id='betelAuthGate';
-    const mount=()=>{if(document.body&&!gate.isConnected)document.body.appendChild(gate)};
-    mount();if(!document.body)document.addEventListener('DOMContentLoaded',mount,{once:true});
-    return gate;
+    if(!gate){
+      gate=document.createElement('div');gate.className='betel-auth-gate';gate.id='betelAuthGate';
+    }
+    const el=gate;
+    const mount=()=>{
+      if(document.body&&gate===el&&!el.isConnected)document.body.appendChild(el);
+    };
+    mount();
+    if(!document.body)document.addEventListener('DOMContentLoaded',mount,{once:true});
+    return el;
   }
   function checkingView(message='Validando sua sessão…'){
     const el=ensureGate();el.innerHTML=`<div class="betel-auth-card"><div class="betel-auth-brand"><img class="betel-auth-logo" src="./logo-br.svg" alt="Betel Radar"><div><div class="betel-auth-name">Betel Radar</div><div class="betel-auth-sub">Radar de Oportunidades</div></div></div><div class="betel-auth-checking"><span class="betel-auth-spinner"></span><span>${message}</span></div></div>`;
@@ -136,7 +142,8 @@
     setTimeout(()=>el.querySelector(last?'#betelAuthPassword':'#betelAuthEmail')?.focus(),50);
   }
   function markReady(session){
-    ready=true;document.documentElement.classList.add('betel-auth-ready');gate?.remove();gate=null;
+    ready=true;document.documentElement.classList.add('betel-auth-ready');
+    document.getElementById('betelAuthGate')?.remove();gate=null;
     window.dispatchEvent(new CustomEvent('betel:auth-ready',{detail:{build:BUILD,user:session?.user||null}}));
   }
 
