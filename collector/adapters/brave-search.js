@@ -24,6 +24,7 @@ function normalizeNumber(text){
   const s=String(text).replace(/\./g,'').replace(',','.').replace(/[^0-9.]/g,'');
   const n=Number(s);return Number.isFinite(n)?n:null;
 }
+function escRx(v=''){return String(v).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
 export function extractPrice(text){
   const m=String(text||'').match(/R\$\s*([0-9][0-9.,]*)/i);
   return m?normalizeNumber(m[1]):null;
@@ -43,6 +44,21 @@ function inferCity(text,fallback=''){
   const t=String(text||'').toLowerCase();
   const cities=['Lauro de Freitas','Camaçari','Mata de São João','Simões Filho',"Dias d'Ávila",'Pojuca','São Francisco do Conde','Candeias','Salvador'];
   return cities.find(c=>t.includes(c.toLowerCase()))||fallback.replace(/["()]/g,'').replace(/\s+BA$/i,'').split(/\s+OR\s+/i)[0].trim();
+}
+function inferLocationHints(title,description,city){
+  const text=`${title||''} ${description||''}`.replace(/\s+/g,' ').trim();
+  let neighborhood='';let address='';
+  const road=text.match(/\b(?:BA-\d{3}|BR-\d{3})(?:\s*,?\s*(?:km\s*)?\d+(?:[.,]\d+)?)?/i)
+    ||text.match(/\b(?:Rua|R\.|Avenida|Av\.?|Travessa|Alameda|Estrada|Rodovia)\s+[^|;]{3,70}/i);
+  if(road)address=road[0].replace(/\s+-\s+.*$/,'').trim();
+  if(city){
+    const cityRx=escRx(city);
+    const olx=title.match(new RegExp(`-\\s*([^|,-]{2,70}(?:\\([^)]{2,40}\\))?)\\s*,\\s*${cityRx}\\b`,'i'));
+    const viva=title.match(new RegExp(`\\bem\\s+([^,|-]{2,45})\\s+em\\s+${cityRx}\\b`,'i'));
+    const raw=(olx?.[1]||viva?.[1]||'').trim();
+    if(raw&&!/terrenos?|s[ií]tios?|fazendas?|ch[aá]caras?|venda|im[oó]vel/i.test(raw))neighborhood=raw;
+  }
+  return {neighborhood,address}
 }
 function sourceFromUrl(url){
   const host=new URL(url).hostname.toLowerCase();
@@ -85,6 +101,8 @@ export function normalizeBraveResult(result,{query,group,rank}={}){
   const title=cleanText(result?.title)||'Imóvel descoberto na web';
   const description=cleanText(result?.description||result?.profile?.long_name||'');
   const combined=`${title} ${description}`;
+  const city=inferCity(combined,group);
+  const hints=inferLocationHints(title,description,city);
   return {
     source,
     external_id:externalId(url,source),
@@ -96,8 +114,10 @@ export function normalizeBraveResult(result,{query,group,rank}={}){
     listing_type:'sale',
     property_type:inferPropertyType(combined),
     price:extractPrice(combined),
-    city:inferCity(combined,group),
+    city,
     state:'BA',
+    ...(hints.neighborhood?{neighborhood:hints.neighborhood}:{}),
+    ...(hints.address?{address_text:hints.address}:{}),
     area_m2:extractArea(combined),
     image_urls:[],
     availability_status:'active',
