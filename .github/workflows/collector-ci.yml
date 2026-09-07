@@ -4,12 +4,20 @@ on:
   push:
     paths:
       - 'collector/**'
+      - 'v082-sync.js'
+      - 'v082-real-data.js'
+      - 'index.html'
+      - 'service-worker.js'
       - '.github/workflows/betel-sync.yml'
       - '.github/workflows/web-discovery.yml'
       - '.github/workflows/collector-ci.yml'
   pull_request:
     paths:
       - 'collector/**'
+      - 'v082-sync.js'
+      - 'v082-real-data.js'
+      - 'index.html'
+      - 'service-worker.js'
       - '.github/workflows/betel-sync.yml'
       - '.github/workflows/web-discovery.yml'
       - '.github/workflows/collector-ci.yml'
@@ -34,10 +42,12 @@ jobs:
         working-directory: collector
         run: npm test
 
-      - name: Validacao de sintaxe do backend
+      - name: Validacao de sintaxe do backend e camada real
         run: |
           node --check collector/sync-engine.js
           node --check collector/supabase-rest.js
           node --check collector/run-sync.js
           node --check collector/run-discovery.js
           node --check collector/adapters/brave-search.js
+          node --check v082-sync.js
+          node --check v082-real-data.js
