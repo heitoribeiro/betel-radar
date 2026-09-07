@@ -9,6 +9,26 @@ export const DEFAULT_POLICY={
   keepActiveUntilUnavailable:false
 };
 
+const SPARSE_FIELDS=[
+  'price','condominium_fee','iptu','advertiser','advertiser_type','city','state','neighborhood','address_text',
+  'latitude','longitude','bedrooms','bathrooms','parking_spaces','area_m2','image_urls',
+  'geocode_status','geocode_precision','geocode_source','geocode_query','geocode_label','geocode_confidence','geocoded_at','location_signature'
+];
+
+function missingValue(v){
+  if(v===null||v===undefined||v==='')return true;
+  if(Array.isArray(v)&&v.length===0)return true;
+  return false;
+}
+
+export function mergeSparseListing(oldRow,incomingRow){
+  const merged={...oldRow,...incomingRow};
+  for(const field of SPARSE_FIELDS){
+    if(missingValue(incomingRow?.[field])&&!missingValue(oldRow?.[field]))merged[field]=oldRow[field];
+  }
+  return merged;
+}
+
 export function listingKey(row){
   if(!row?.source||!row?.external_id)throw new Error('source e external_id são obrigatórios');
   return `${row.source}:${row.external_id}`;
@@ -45,12 +65,13 @@ export function reconcileSnapshot(existingRows,incomingRows,options={}){
       continue;
     }
 
+    const merged=mergeSparseListing(old,row);
+
     // Um anúncio que o usuário confirmou como indisponível não deve voltar a
     // ACTIVE apenas porque ainda existe em um índice externo desatualizado.
     if(old.manual_availability_lock){
       result.push({
-        ...old,
-        ...row,
+        ...merged,
         availability_status:'unavailable',
         verification_status:'stale',
         first_seen_at:old.first_seen_at||now,
@@ -65,7 +86,7 @@ export function reconcileSnapshot(existingRows,incomingRows,options={}){
       continue;
     }
 
-    result.push({...old,...row,first_seen_at:old.first_seen_at||now});
+    result.push({...merged,first_seen_at:old.first_seen_at||now});
     stats.updated++;
     existing.delete(key);
   }
