@@ -5,7 +5,7 @@ Betel Drones — Radar de Oportunidades.
 ## Produção
 
 - Versão: v0.8.2
-- Front-end publicado: build 8207
+- Front-end publicado: build 8208
 - Hospedagem: GitHub Pages
 - URL: https://heitoribeiro.github.io/betel-radar/
 - Betel Cloud: Supabase de produção ativo
@@ -33,9 +33,11 @@ Já implementado no repositório e no Supabase:
 - primeira coleta automatizada homologada com sucesso: 8 consultas, 4 resultados diretos, sendo 2 OLX e 2 Viva Real;
 - parser de preço/área testado e corrigido;
 - 14 oportunidades ativas no Betel Cloud nesta etapa, sendo 10 sementes de pesquisa web e 4 coletadas automaticamente pelo Brave;
-- build 8207 força o uso da fonte real em PRODUÇÃO e remove o retorno ao modo DEMO da interface operacional;
+- build 8207 passou a forçar o uso da fonte real em PRODUÇÃO e removeu o retorno ao modo DEMO da interface operacional;
 - `radar_user_state` foi substituído pelos 14 registros reais/prováveis, todos iniciando no CRM como `Novo`;
 - camada `v082-real-data.js` adapta os anúncios reais ao formato legado da aplicação e preserva campos comerciais editados pelo usuário entre sincronizações;
+- build 8208 adiciona `v082-opportunity-detail.js`, com origem do anúncio, método de descoberta, status de verificação, primeira/última detecção, acesso ao anúncio original e checklist antes da abordagem;
+- indicadores visuais não confirmados deixam de ser apresentados como fatos e passam a ser tratados como `não verificado`;
 - configuração oficial `OLX Imóveis` permanece desativada aguardando API/feed/endpoint autorizado.
 
 ### Fontes atuais
@@ -75,6 +77,7 @@ Nunca versionar `BRAVE_SEARCH_API_KEY`, `SUPABASE_SECRET_KEY` ou `SUPABASE_SERVI
 - `supabase/migrations/20260907_v082_web_discovery.sql`
 - `v082-sync.js`
 - `v082-real-data.js`
+- `v082-opportunity-detail.js`
 - `collector/sync-engine.js`
 - `collector/supabase-rest.js`
 - `collector/run-sync.js`
@@ -87,10 +90,10 @@ Nunca versionar `BRAVE_SEARCH_API_KEY`, `SUPABASE_SECRET_KEY` ou `SUPABASE_SERVI
 
 ## Próximos passos
 
-1. validar no Dashboard, Radar, Radar Visual e CRM a substituição completa dos dados fictícios pelos anúncios reais;
-2. melhorar a ficha de cada oportunidade com identificação da fonte e acesso rápido ao anúncio original;
-3. iniciar enriquecimento manual/assistido de anunciante e canais de contato para prospecção dos serviços de filmagem aérea;
-4. acompanhar as próximas execuções do Brave e validar deduplicação/atualizações;
+1. homologar no desktop/mobile a nova ficha de origem e verificação do build 8208;
+2. iniciar enriquecimento manual/assistido de anunciante e canais de contato para prospecção dos serviços de filmagem aérea;
+3. acompanhar as próximas execuções do Brave e validar deduplicação/atualizações;
+4. melhorar a priorização do Score Betel com dados reais de área, tipo de imóvel, anunciante e qualidade visual quando confirmados;
 5. continuar aguardando o mecanismo oficial autorizado da OLX;
 6. quando a OLX liberar o acesso, habilitar também o coletor oficial e promover anúncios confirmados para `verified`.
 
