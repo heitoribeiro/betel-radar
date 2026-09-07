@@ -42,6 +42,16 @@ test('anuncio que reaparece volta a active e zera ausencias',()=>{
   assert.equal(rows[0].first_seen_at,old.first_seen_at);
 });
 
+test('confirmacao manual de indisponibilidade nao reativa por indice externo',()=>{
+  const old={source:'vivareal',external_id:'10',title:'Anúncio antigo',availability_status:'unavailable',verification_status:'stale',manual_availability_lock:true,manual_unavailable_reason:'confirmado',manual_unavailable_at:'2026-09-07T02:00:00.000Z',unavailable_at:'2026-09-07T02:00:00.000Z',first_seen_at:'2026-09-01T00:00:00.000Z'};
+  const {rows,stats}=reconcileSnapshot([old],[{source:'vivareal',external_id:'10',title:'Ainda indexado'}],{now:'2026-09-07T03:00:00.000Z'});
+  assert.equal(rows[0].availability_status,'unavailable');
+  assert.equal(rows[0].verification_status,'stale');
+  assert.equal(rows[0].manual_availability_lock,true);
+  assert.equal(rows[0].title,'Ainda indexado');
+  assert.equal(stats.manualLocked,1);
+});
+
 test('anuncio indisponivel por 7 dias vira removed',()=>{
   const old={source:'olx',external_id:'1',title:'Imóvel A',availability_status:'unavailable',consecutive_misses:5,first_seen_at:'2026-08-30T00:00:00.000Z',last_seen_at:'2026-08-31T00:00:00.000Z',missing_since:'2026-08-31T01:00:00.000Z',unavailable_at:'2026-08-31T01:00:00.000Z'};
   const {rows,stats}=reconcileSnapshot([old],[],{now:'2026-09-07T01:00:00.000Z',removeAfterHours:168});
