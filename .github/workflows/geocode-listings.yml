@@ -1,0 +1,37 @@
+name: Betel Radar - geocodificar oportunidades
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'collector/geocode-listings.js'
+      - 'collector/supabase-rest.js'
+      - '.github/workflows/geocode-listings.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: betel-radar-geocoding
+  cancel-in-progress: false
+
+jobs:
+  geocode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Geocodificar anúncios ativos
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BETEL_GEOCODE_MAX_ROWS: '50'
+        run: node collector/geocode-listings.js
