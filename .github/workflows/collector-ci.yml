@@ -6,6 +6,7 @@ on:
       - 'collector/**'
       - 'v082-sync.js'
       - 'v082-real-data.js'
+      - 'v082-opportunity-detail.js'
       - 'index.html'
       - 'service-worker.js'
       - '.github/workflows/betel-sync.yml'
@@ -16,6 +17,7 @@ on:
       - 'collector/**'
       - 'v082-sync.js'
       - 'v082-real-data.js'
+      - 'v082-opportunity-detail.js'
       - 'index.html'
       - 'service-worker.js'
       - '.github/workflows/betel-sync.yml'
@@ -51,3 +53,4 @@ jobs:
           node --check collector/adapters/brave-search.js
           node --check v082-sync.js
           node --check v082-real-data.js
+          node --check v082-opportunity-detail.js
