@@ -1,6 +1,6 @@
-/* Betel Radar v0.8.2 — guarda de contexto e dados da ficha, build 8221 */
+/* Betel Radar v0.8.2 — guarda de contexto e dados da ficha, build 8222 */
 (function(){
-  const BUILD='8221';
+  const BUILD='8222';
   const SUPABASE_URL='https://asnjlaxhbehzhisandmz.supabase.co';
   const PUBLISHABLE_KEY='sb_publishable_JCp12LZjTSgH7mi-X-eOvg_hILh1fb3';
   const rowCache=new Map();
@@ -67,7 +67,7 @@
 
   function applyRow(op,row){
     if(!op||!row)return false;
-    const before=[op.price,op.areaM2,op.advertiser,op.city,op.neighborhood,op.latitude,op.longitude].join('|');
+    const before=[op.price,op.areaM2,op.advertiser,op.city,op.neighborhood,op.latitude,op.longitude,op.updatedAt].join('|');
     const sourcePrice=num(row.price),manualPrice=num(row.manual_price),sourceArea=num(row.area_m2),manualArea=num(row.manual_area_m2);
     op.sourcePrice=sourcePrice;op.manualPrice=manualPrice;op.price=manualPrice!==null?manualPrice:sourcePrice;
     op.sourceAreaM2=sourceArea;op.manualAreaM2=manualArea;op.areaM2=manualArea!==null?manualArea:sourceArea;
@@ -77,7 +77,7 @@
     op.geocodeStatus=row.geocode_status||op.geocodeStatus||'';op.geocodePrecision=row.geocode_precision||op.geocodePrecision||'';op.geocodeLabel=row.geocode_label||op.geocodeLabel||'';
     op.firstSeen=row.first_seen_at||op.firstSeen||'';op.lastSeen=row.last_seen_at||op.lastSeen||'';op.updatedAt=row.updated_at||op.updatedAt||'';
     op.url=row.source_url||op.url||'';op.discoveredVia=row.discovered_via||op.discoveredVia||'';op.verificationStatus=row.verification_status||op.verificationStatus||'discovered';
-    return before!==[op.price,op.areaM2,op.advertiser,op.city,op.neighborhood,op.latitude,op.longitude].join('|')
+    return before!==[op.price,op.areaM2,op.advertiser,op.city,op.neighborhood,op.latitude,op.longitude,op.updatedAt].join('|')
   }
 
   function setField(root,label,value){
@@ -115,13 +115,15 @@
 
       const row=await fetchRow(op,forceRow);
       root=detailRoot();const current=resolveOp(root);if(!root||!current||String(current.id)!==String(op.id))return false;
-      if(row){applyRow(op,row);syncLegacy();refreshBaseFields(root,op)}
+      let changed=false;
+      if(row){changed=applyRow(op,row);syncLegacy();refreshBaseFields(root,op)}
 
       const panel=document.getElementById('v082SourceDetailPanel');
-      if(!panel||String(panel.dataset.v082OpId||'')!==String(op.id)||row){try{window.__BETEL_DETAIL_ENRICHMENT__?.inject?.(op.id)}catch{}}
+      const panelWrong=!panel||String(panel.dataset.v082OpId||'')!==String(op.id);
+      if(panelWrong||changed){try{window.__BETEL_DETAIL_ENRICHMENT__?.inject?.(op.id)}catch{}}
       const prospect=document.getElementById('v082ProspectingPanel');if(prospect&&String(prospect.dataset.v082OpId||'')!==String(op.id))prospect.remove();
       try{window.__BETEL_DETAIL_LAYOUT_FIX__?.repair?.()}catch{}
-      window.__BETEL_DETAIL_DATA_GUARD__={build:BUILD,reason,opId:op.id,source:sourceKey(op),externalId:String(op.externalId||op.external_id||''),price:op.price,updatedAt:new Date().toISOString()};
+      window.__BETEL_DETAIL_DATA_GUARD__={build:BUILD,reason,opId:op.id,source:sourceKey(op),externalId:String(op.externalId||op.external_id||''),price:op.price,changed,updatedAt:new Date().toISOString()};
       return true
     }finally{enforcing=false}
   }
@@ -136,7 +138,7 @@
   window.addEventListener('betel:real-data-ready',()=>setTimeout(()=>enforce('real-data-ready',true),180));
   window.addEventListener('pageshow',()=>setTimeout(()=>{syncLegacy();enforce('pageshow',true)},650));
 
-  const observer=new MutationObserver(()=>{if(observerTimer)return;observerTimer=setTimeout(()=>{observerTimer=null;if(detailRoot())enforce('mutation')},130)});
+  const observer=new MutationObserver(()=>{if(observerTimer)return;observerTimer=setTimeout(()=>{observerTimer=null;if(detailRoot())enforce('mutation')},180)});
   const start=()=>observer.observe(document.body,{childList:true,subtree:true});if(document.body)start();else window.addEventListener('DOMContentLoaded',start,{once:true});
   setTimeout(()=>{syncLegacy();enforce('boot',true)},1200);
 })();
