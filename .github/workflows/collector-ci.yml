@@ -5,11 +5,13 @@ on:
     paths:
       - 'collector/**'
       - '.github/workflows/betel-sync.yml'
+      - '.github/workflows/web-discovery.yml'
       - '.github/workflows/collector-ci.yml'
   pull_request:
     paths:
       - 'collector/**'
       - '.github/workflows/betel-sync.yml'
+      - '.github/workflows/web-discovery.yml'
       - '.github/workflows/collector-ci.yml'
 
 permissions:
@@ -37,3 +39,5 @@ jobs:
           node --check collector/sync-engine.js
           node --check collector/supabase-rest.js
           node --check collector/run-sync.js
+          node --check collector/run-discovery.js
+          node --check collector/adapters/brave-search.js
