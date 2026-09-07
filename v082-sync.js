@@ -1,4 +1,4 @@
-/* Betel Radar v0.8.2 — camada de sincronização build 8206 */
+/* Betel Radar v0.8.2 — camada de sincronização build 8209 */
 (function(){
   const VERSION='v0.8.2';
   const KEY_MODE='betel_data_mode';
@@ -18,7 +18,7 @@
     lastSync:localStorage.getItem(KEY_LAST)||'',
     status:'idle',active:0,unavailable:0,error:'',mobileOpen:false
   };
-  let rendering=false,queued=false;
+  let rendering=false,queued=false,booted=false;
 
   function fmtDate(v){if(!v)return 'Nunca';const d=new Date(v);return isNaN(d)?'Nunca':d.toLocaleString('pt-BR')}
   function activeEndpoint(){return state.endpoint||DEFAULT_LISTINGS_ENDPOINT}
@@ -181,10 +181,7 @@
       render()
     }
   }
-  function toggleMode(){
-    state.mode=state.mode==='demo'?'production':'demo';localStorage.setItem(KEY_MODE,state.mode);
-    if(state.mode==='production')syncNow();else syncNow()
-  }
+  function toggleMode(){state.mode=state.mode==='demo'?'production':'demo';localStorage.setItem(KEY_MODE,state.mode);syncNow()}
   function delegatedAction(e){
     const toggle=e.target.closest?.('#v082MobileToggle');if(toggle){e.preventDefault();e.stopPropagation();state.mobileOpen=!state.mobileOpen;render();return}
     const action=e.target.closest?.('[data-v082-action]');if(!action)return;
@@ -193,11 +190,19 @@
 
   function expose(){window.BetelRadarSync={version:VERSION,state,normalizeListing,syncNow,setEndpoint(v){state.endpoint=String(v||'').trim();if(state.endpoint)localStorage.setItem(KEY_ENDPOINT,state.endpoint);else localStorage.removeItem(KEY_ENDPOINT);render()},setMode(v){state.mode=v==='production'?'production':'demo';localStorage.setItem(KEY_MODE,state.mode);syncNow()}}}
   function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;render()})}
+  function boot(){
+    expose();
+    if(booted){render();return}
+    booted=true;
+    if(state.mode==='production')syncNow();else{state.active=DEMO_OPPORTUNITIES.length;render()}
+  }
+
   document.addEventListener('click',delegatedAction,true);
-  document.addEventListener('click',()=>setTimeout(schedule,40),true);
-  window.addEventListener('pageshow',()=>setTimeout(()=>{expose();render();if(state.mode==='production')syncNow();else{state.active=DEMO_OPPORTUNITIES.length;render()}},150));
-  window.addEventListener('resize',()=>setTimeout(schedule,80),{passive:true});
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(schedule,100)});
-  new MutationObserver(ms=>{if(ms.every(m=>m.target?.closest?.('#v082SyncCard')))return;schedule()}).observe(document.documentElement,{subtree:true,childList:true});
-  setTimeout(()=>{expose();if(state.mode==='production')syncNow();else{state.active=DEMO_OPPORTUNITIES.length;render()}},700);
+  document.addEventListener('click',e=>{
+    if(e.target.closest?.('.nav-item,.bottom-nav,.mobile-bottom-nav,[data-section],[onclick*="showSection"],[onclick*="navigate"]'))setTimeout(schedule,90)
+  },true);
+  window.addEventListener('pageshow',()=>setTimeout(boot,130));
+  window.addEventListener('resize',()=>setTimeout(schedule,100),{passive:true});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(schedule,120)});
+  setTimeout(()=>{if(!booted)boot()},650);
 })();
