@@ -79,6 +79,9 @@ function isDirectListing(url,source){
   if(source==='vivareal')return u.pathname.includes('/imovel/')&&/id-(\d+)/.test(u.pathname);
   return false;
 }
+function looksUnavailable(text=''){
+  return /\b(an[uú]ncio\s+(?:n[aã]o\s+)?(?:dispon[ií]vel|encontrado|removido|expirado)|im[oó]vel\s+(?:n[aã]o\s+)?dispon[ií]vel|p[aá]gina\s+n[aã]o\s+encontrada|404|conte[uú]do\s+indispon[ií]vel)\b/i.test(String(text));
+}
 
 async function braveSearch(query,key,count){
   const params=new URLSearchParams({q:query,count:String(count),country:'BR',search_lang:'pt-br',ui_lang:'pt-BR',spellcheck:'1'});
@@ -101,6 +104,7 @@ export function normalizeBraveResult(result,{query,group,rank}={}){
   const title=cleanText(result?.title)||'Imóvel descoberto na web';
   const description=cleanText(result?.description||result?.profile?.long_name||'');
   const combined=`${title} ${description}`;
+  if(looksUnavailable(combined))return null;
   const city=inferCity(combined,group);
   const hints=inferLocationHints(title,description,city);
   return {
