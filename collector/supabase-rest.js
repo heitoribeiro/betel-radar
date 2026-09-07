@@ -66,7 +66,7 @@ export async function finishSyncRun(id,patch){
 }
 
 const DB_FIELDS=new Set([
-  'source','external_id','source_url','title','description','advertiser','advertiser_type','listing_type','property_type','price','condominium_fee','iptu','city','state','neighborhood','address_text','latitude','longitude','bedrooms','bathrooms','parking_spaces','area_m2','image_urls','raw_payload','availability_status','first_seen_at','last_seen_at','missing_since','unavailable_at','removed_at','consecutive_misses','content_hash','discovered_via','verification_status','discovery_query','discovered_at','last_verified_at','source_rank','geocode_status','geocode_precision','geocode_source','geocode_query','geocode_label','geocode_confidence','geocoded_at','location_signature'
+  'source','external_id','source_url','title','description','advertiser','advertiser_type','listing_type','property_type','price','condominium_fee','iptu','city','state','neighborhood','address_text','latitude','longitude','bedrooms','bathrooms','parking_spaces','area_m2','image_urls','raw_payload','availability_status','first_seen_at','last_seen_at','missing_since','unavailable_at','removed_at','consecutive_misses','content_hash','discovered_via','verification_status','discovery_query','discovered_at','last_verified_at','source_rank','geocode_status','geocode_precision','geocode_source','geocode_query','geocode_label','geocode_confidence','geocoded_at','location_signature','manual_availability_lock','manual_unavailable_reason','manual_unavailable_at'
 ]);
 
 export function toDbRow(row){
