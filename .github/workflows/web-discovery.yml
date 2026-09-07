@@ -1,0 +1,45 @@
+name: Betel Radar - descoberta web
+
+on:
+  schedule:
+    - cron: '17 0,8,16 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: betel-radar-web-discovery
+  cancel-in-progress: false
+
+jobs:
+  discovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validar motor
+        working-directory: collector
+        run: npm test
+
+      - name: Descobrir oportunidades via Brave Search
+        env:
+          BETEL_WEB_DISCOVERY_ENABLED: ${{ secrets.BETEL_WEB_DISCOVERY_ENABLED }}
+          BRAVE_SEARCH_API_KEY: ${{ secrets.BRAVE_SEARCH_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BETEL_DISCOVERY_UNAVAILABLE_AFTER_MISSES: ${{ secrets.BETEL_DISCOVERY_UNAVAILABLE_AFTER_MISSES }}
+          BETEL_DISCOVERY_REMOVE_AFTER_HOURS: ${{ secrets.BETEL_DISCOVERY_REMOVE_AFTER_HOURS }}
+        run: |
+          if [ "$BETEL_WEB_DISCOVERY_ENABLED" != "true" ]; then
+            echo "Descoberta web ainda desativada. Configure os secrets e BETEL_WEB_DISCOVERY_ENABLED=true."
+            exit 0
+          fi
+          node collector/run-discovery.js
