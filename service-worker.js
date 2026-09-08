@@ -1,4 +1,4 @@
-const CACHE='betel-radar-v0.8.2-github-8236';
+const CACHE='betel-radar-v0.8.2-github-8237';
 const ASSETS=[
   './','./index.html','./manifest.webmanifest','./icon.svg',
   './chunk00.txt','./chunk01.txt','./chunk02.txt','./chunk03.txt',
