@@ -1,8 +1,8 @@
-/* Betel Radar v0.8.2 — carregador pós-login estável, build 8232 */
+/* Betel Radar v0.8.2 — carregador pós-login estável, build 8233 */
 (function(){
   'use strict';
 
-  const BUILD='8232';
+  const BUILD='8233';
   const PROJECT_REF='asnjlaxhbehzhisandmz';
   const STORAGE_KEY=`sb-${PROJECT_REF}-auth-token`;
 
@@ -45,12 +45,12 @@
 
     html=html
       .replaceAll("window.location.origin+'/'","new URL('./',window.location.href).href")
-      .replace("navigator.serviceWorker.register('/service-worker.js')","navigator.serviceWorker.register('./service-worker.js?v=8232')")
-      .replace("navigator.serviceWorker.register('./service-worker.js')","navigator.serviceWorker.register('./service-worker.js?v=8232')");
+      .replace("navigator.serviceWorker.register('/service-worker.js')","navigator.serviceWorker.register('./service-worker.js?v=8233')")
+      .replace("navigator.serviceWorker.register('./service-worker.js')","navigator.serviceWorker.register('./service-worker.js?v=8233')");
 
     const sessionScript='<scr'+'ipt src="./v082-auth-session.js?v=8232&nocache=1"></scr'+'ipt>';
     const cssTag=sessionScript+
-      '<link rel="stylesheet" href="./v080.css?v=8007">'+
+      '<link rel="stylesheet" href="./v080.css?v=8008&nocache=1">'+
       '<link rel="stylesheet" href="./v081.css?v=8103">'+
       '<link rel="stylesheet" href="./v081-mobile.css?v=8104">';
 
