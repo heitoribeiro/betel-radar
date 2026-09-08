@@ -5,6 +5,7 @@
   const BUILD='8241';
   let mapRefreshBusy=false;
   let mapRetryTimer=null;
+  let internalResize=false;
 
   const norm=v=>String(v??'').replace(/\s+/g,' ').trim();
   const visible=el=>{
@@ -165,7 +166,9 @@
     if(mapRefreshBusy||!mapVisible())return;
     mapRefreshBusy=true;
     try{
+      internalResize=true;
       window.dispatchEvent(new Event('resize'));
+      internalResize=false;
       if(typeof window.renderAll==='function')window.renderAll();
       document.body?.setAttribute('data-betel-map-refresh',`${BUILD}:${reason}`);
     }catch{}
@@ -175,7 +178,9 @@
         clearTimeout(mapRetryTimer);
         mapRetryTimer=setTimeout(()=>{
           try{
+            internalResize=true;
             window.dispatchEvent(new Event('resize'));
+            internalResize=false;
             if(typeof window.renderAll==='function')window.renderAll();
           }catch{}
         },260);
@@ -221,6 +226,7 @@
     scheduleMapRefresh('pageshow');
   });
   window.addEventListener('resize',()=>{
+    if(internalResize)return;
     if(mapVisible())setTimeout(()=>performMapRefresh('resize'),260);
   },{passive:true});
 
