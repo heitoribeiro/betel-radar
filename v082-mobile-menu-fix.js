@@ -1,9 +1,11 @@
-/* Betel Radar v0.8.2 — controlador definitivo do menu mobile, build 8234 */
+/* Betel Radar v0.8.2 — controlador definitivo do menu mobile, build 8235 */
 (function(){
   'use strict';
 
-  const BUILD='8234';
+  const BUILD='8235';
   const MOBILE_MAX=760;
+  const Z_SIDEBAR='2147483600';
+  const Z_BACKDROP='2147483500';
   let menuOpen=false;
   let applying=false;
 
@@ -14,6 +16,40 @@
       [...document.querySelectorAll('button')].find(b=>/^[☰≡]$/.test((b.textContent||'').trim())) || null;
   }
   function backdrops(){return [...document.querySelectorAll('.sidebar-backdrop,.mobile-overlay,.menu-overlay')];}
+
+  function installLayerStyles(){
+    if(document.getElementById('v082MobileMenuLayerStyles'))return;
+    const s=document.createElement('style');
+    s.id='v082MobileMenuLayerStyles';
+    s.textContent=`
+      @media(max-width:760px){
+        body.betel-menu-open .sidebar{
+          position:fixed!important;
+          inset:0 auto 0 0!important;
+          height:100dvh!important;
+          max-height:100dvh!important;
+          z-index:${Z_SIDEBAR}!important;
+          overflow-y:auto!important;
+          overscroll-behavior:contain!important;
+        }
+        body.betel-menu-open .sidebar-backdrop,
+        body.betel-menu-open .mobile-overlay,
+        body.betel-menu-open .menu-overlay{
+          position:fixed!important;
+          inset:0!important;
+          z-index:${Z_BACKDROP}!important;
+        }
+        body.betel-menu-open .topbar,
+        body.betel-menu-open header{
+          z-index:2147483300!important;
+        }
+        body.betel-menu-open .mobile-menu-btn{
+          z-index:2147483301!important;
+        }
+      }
+    `;
+    document.head.appendChild(s);
+  }
 
   function restoreDocumentScroll(){
     document.documentElement.style.removeProperty('overflow');
@@ -27,26 +63,31 @@
     if(applying)return;
     applying=true;
     try{
+      installLayerStyles();
       const side=sidebar();
       if(!side)return;
 
       if(!isMobile()){
-        side.style.removeProperty('transform');
-        side.style.removeProperty('pointer-events');
-        side.style.removeProperty('visibility');
+        ['transform','pointer-events','visibility','z-index','top','left','bottom','height','max-height','overflow-y'].forEach(p=>side.style.removeProperty(p));
         side.removeAttribute('aria-hidden');
         document.body.classList.remove('betel-menu-open');
         backdrops().forEach(el=>{
           if(el.dataset.betelMenuFix==='1'){
-            el.style.removeProperty('display');
-            el.style.removeProperty('pointer-events');
-            el.style.removeProperty('opacity');
+            ['display','pointer-events','opacity','z-index'].forEach(p=>el.style.removeProperty(p));
             delete el.dataset.betelMenuFix;
           }
         });
         return;
       }
 
+      side.style.setProperty('position','fixed','important');
+      side.style.setProperty('top','0','important');
+      side.style.setProperty('left','0','important');
+      side.style.setProperty('bottom','0','important');
+      side.style.setProperty('height','100dvh','important');
+      side.style.setProperty('max-height','100dvh','important');
+      side.style.setProperty('overflow-y','auto','important');
+      side.style.setProperty('z-index',Z_SIDEBAR,'important');
       side.style.setProperty('transition','transform .22s ease','important');
       side.style.setProperty('will-change','transform','important');
       side.style.setProperty('transform',menuOpen?'translateX(0)':'translateX(calc(-100% - 12px))','important');
@@ -57,6 +98,7 @@
 
       backdrops().forEach(el=>{
         el.dataset.betelMenuFix='1';
+        el.style.setProperty('z-index',Z_BACKDROP,'important');
         el.style.setProperty('display',menuOpen?'block':'none','important');
         el.style.setProperty('pointer-events',menuOpen?'auto':'none','important');
         el.style.setProperty('opacity',menuOpen?'1':'0','important');
@@ -119,6 +161,7 @@
   });
   function start(){
     if(!document.body){setTimeout(start,40);return}
+    installLayerStyles();
     observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
     menuOpen=false;
     applyState();
