@@ -1,8 +1,8 @@
-/* Betel Radar v0.8.2 — carregador pós-login estável, build 8238 */
+/* Betel Radar v0.8.2 — carregador pós-login estável, build 8239 */
 (function(){
   'use strict';
 
-  const BUILD='8238';
+  const BUILD='8239';
   const PROJECT_REF='asnjlaxhbehzhisandmz';
   const STORAGE_KEY=`sb-${PROJECT_REF}-auth-token`;
 
@@ -45,8 +45,8 @@
 
     html=html
       .replaceAll("window.location.origin+'/'","new URL('./',window.location.href).href")
-      .replace("navigator.serviceWorker.register('/service-worker.js')","navigator.serviceWorker.register('./service-worker.js?v=8238')")
-      .replace("navigator.serviceWorker.register('./service-worker.js')","navigator.serviceWorker.register('./service-worker.js?v=8238')");
+      .replace("navigator.serviceWorker.register('/service-worker.js')","navigator.serviceWorker.register('./service-worker.js?v=8239')")
+      .replace("navigator.serviceWorker.register('./service-worker.js')","navigator.serviceWorker.register('./service-worker.js?v=8239')");
 
     const sessionScript='<scr'+'ipt src="./v082-auth-session.js?v=8232&nocache=1"></scr'+'ipt>';
     const cssTag=sessionScript+
@@ -73,7 +73,8 @@
       '<scr'+'ipt src="./v082-radar-cleanup.js?v=8227&nocache=1"></scr'+'ipt>'+
       '<scr'+'ipt src="./v082-mobile-menu-fix.js?v=8235&nocache=2"></scr'+'ipt>'+
       '<scr'+'ipt src="./v082-desktop-layout-fix.js?v=8238&nocache=3"></scr'+'ipt>'+
-      '<scr'+'ipt src="./header-fix.js?v=8124&nocache=8"></scr'+'ipt>';
+      '<scr'+'ipt src="./header-fix.js?v=8124&nocache=8"></scr'+'ipt>'+
+      '<scr'+'ipt src="./v082-visual-polish.js?v=8239&nocache=1"></scr'+'ipt>';
 
     const lowerHtml=html.toLowerCase();
     const headPos=lowerHtml.indexOf('</head>');
