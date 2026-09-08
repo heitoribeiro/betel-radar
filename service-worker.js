@@ -1,4 +1,4 @@
-const CACHE='betel-radar-v0.8.2-github-8232';
+const CACHE='betel-radar-v0.8.2-github-8233';
 const ASSETS=[
   './','./index.html','./manifest.webmanifest','./icon.svg',
   './chunk00.txt','./chunk01.txt','./chunk02.txt','./chunk03.txt',
@@ -23,7 +23,7 @@ self.addEventListener('fetch',event=>{
   if(url.origin!==location.origin)return;
 
   const noCacheFiles=[
-    'index.html','v080.js','v081-mobile-fix.js','header-fix.js','v082-auth-bootstrap.js','v082-auth-session.js','v082-app-loader.js',
+    'index.html','v080.css','v080.js','v081-mobile-fix.js','header-fix.js','v082-auth-bootstrap.js','v082-auth-session.js','v082-app-loader.js',
     'v082-real-data.js','v082-sync.js','v082-map-data-bridge.js','v082-opportunity-detail.js','v082-admin-tools.js',
     'v082-data-correction.js','v082-prospecting.js','v082-detail-layout-fix.js','v082-detail-data-guard.js','v082-ui-stability.js',
     'v082-dashboard-crm-authority.js','v082-radar-cleanup.js','logo-br.svg'
