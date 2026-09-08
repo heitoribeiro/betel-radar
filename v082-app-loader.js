@@ -1,8 +1,8 @@
-/* Betel Radar v0.8.2 — carregador pós-login estável, build 8231 */
+/* Betel Radar v0.8.2 — carregador pós-login estável, build 8232 */
 (function(){
   'use strict';
 
-  const BUILD='8231';
+  const BUILD='8232';
   const PROJECT_REF='asnjlaxhbehzhisandmz';
   const STORAGE_KEY=`sb-${PROJECT_REF}-auth-token`;
 
@@ -45,10 +45,10 @@
 
     html=html
       .replaceAll("window.location.origin+'/'","new URL('./',window.location.href).href")
-      .replace("navigator.serviceWorker.register('/service-worker.js')","navigator.serviceWorker.register('./service-worker.js?v=8231')")
-      .replace("navigator.serviceWorker.register('./service-worker.js')","navigator.serviceWorker.register('./service-worker.js?v=8231')");
+      .replace("navigator.serviceWorker.register('/service-worker.js')","navigator.serviceWorker.register('./service-worker.js?v=8232')")
+      .replace("navigator.serviceWorker.register('./service-worker.js')","navigator.serviceWorker.register('./service-worker.js?v=8232')");
 
-    const sessionScript='<scr'+'ipt src="./v082-auth-session.js?v=8231&nocache=1"></scr'+'ipt>';
+    const sessionScript='<scr'+'ipt src="./v082-auth-session.js?v=8232&nocache=1"></scr'+'ipt>';
     const cssTag=sessionScript+
       '<link rel="stylesheet" href="./v080.css?v=8007">'+
       '<link rel="stylesheet" href="./v081.css?v=8103">'+
@@ -73,10 +73,21 @@
       '<scr'+'ipt src="./v082-radar-cleanup.js?v=8227&nocache=1"></scr'+'ipt>'+
       '<scr'+'ipt src="./header-fix.js?v=8124&nocache=8"></scr'+'ipt>';
 
-    const headPos=html.lastIndexOf('</head>');
-    if(headPos>=0) html=html.slice(0,headPos)+cssTag+html.slice(headPos);
-    const bodyPos=html.lastIndexOf('</body>');
-    if(bodyPos>=0) html=html.slice(0,bodyPos)+patchTag+html.slice(bodyPos);
+    /*
+      IMPORTANTE: usar a PRIMEIRA ocorrência de </head>.
+      O HTML original possui templates de impressão dentro de JavaScript que também
+      contêm a sequência </head>. Usar lastIndexOf injetava um novo <script> dentro
+      de uma template string, encerrando o script original antes da hora e fazendo
+      trechos de JavaScript aparecerem como texto na interface.
+    */
+    const lowerHtml=html.toLowerCase();
+    const headPos=lowerHtml.indexOf('</head>');
+    if(headPos<0) throw new Error('Estrutura HTML inválida: </head> não encontrado.');
+    html=html.slice(0,headPos)+cssTag+html.slice(headPos);
+
+    const bodyPos=html.toLowerCase().lastIndexOf('</body>');
+    if(bodyPos<0) throw new Error('Estrutura HTML inválida: </body> não encontrado.');
+    html=html.slice(0,bodyPos)+patchTag+html.slice(bodyPos);
 
     document.open();
     document.write(html);
