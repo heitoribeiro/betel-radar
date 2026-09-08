@@ -1,8 +1,8 @@
-/* Betel Radar v0.8.2 — carregador pós-login estável, build 8243 */
+/* Betel Radar v0.8.2 — carregador pós-login estável, build 8244 */
 (function(){
   'use strict';
 
-  const BUILD='8243';
+  const BUILD='8244';
   const PROJECT_REF='asnjlaxhbehzhisandmz';
   const STORAGE_KEY=`sb-${PROJECT_REF}-auth-token`;
 
@@ -45,8 +45,8 @@
 
     html=html
       .replaceAll("window.location.origin+'/'","new URL('./',window.location.href).href")
-      .replace("navigator.serviceWorker.register('/service-worker.js')","navigator.serviceWorker.register('./service-worker.js?v=8243')")
-      .replace("navigator.serviceWorker.register('./service-worker.js')","navigator.serviceWorker.register('./service-worker.js?v=8243')");
+      .replace("navigator.serviceWorker.register('/service-worker.js')","navigator.serviceWorker.register('./service-worker.js?v=8244')")
+      .replace("navigator.serviceWorker.register('./service-worker.js')","navigator.serviceWorker.register('./service-worker.js?v=8244')");
 
     const sessionScript='<scr'+'ipt src="./v082-auth-session.js?v=8232&nocache=1"></scr'+'ipt>';
     const cssTag=sessionScript+
@@ -78,7 +78,7 @@
       '<scr'+'ipt src="./v082-funnel-crm-sync.js?v=8240&nocache=1"></scr'+'ipt>'+
       '<scr'+'ipt src="./v082-map-agenda-final-fix.js?v=8241&nocache=1"></scr'+'ipt>'+
       '<scr'+'ipt src="./v082-agenda-today-dedup.js?v=8242&nocache=1"></scr'+'ipt>'+
-      '<scr'+'ipt src="./v082-contacts-hub.js?v=8243&nocache=1"></scr'+'ipt>';
+      '<scr'+'ipt src="./v082-contacts-hub.js?v=8244&nocache=2"></scr'+'ipt>';
 
     const lowerHtml=html.toLowerCase();
     const headPos=lowerHtml.indexOf('</head>');
